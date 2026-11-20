@@ -1,694 +1,1982 @@
+
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="light">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>DISKUSI AI — Document Intelligence</title>
-
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-
-<style>
-:root {
- --bg:#0b0d12;
- --panel:#121620;
- --panel2:#191f2c;
- --border:#292f3d;
- --text:#edf0f7;
- --muted:#8993a5;
- --accent:#8b7cff;
- --green:#36d6a0;
-}
-*{box-sizing:border-box}
-body{
- margin:0;background:var(--bg);color:var(--text);
- font-family:Inter,system-ui,sans-serif;
-}
-button,input,textarea{font:inherit}
-.app{max-width:1100px;margin:auto;padding:22px 17px 70px}
-.topbar{
- display:flex;justify-content:space-between;align-items:center;
- border-bottom:1px solid var(--border);padding-bottom:20px;
-}
-.brand{display:flex;align-items:center;gap:12px}
-.logo{
- width:42px;height:42px;border-radius:13px;
- background:var(--accent);display:grid;place-items:center;
- font-size:21px;color:white;
-}
-.brand h5{margin:0;font-weight:800;letter-spacing:1px}
-.brand small{color:var(--muted)}
-.badge-ai{
- color:var(--green);border:1px solid #285b4c;
- background:#10251f;padding:7px 11px;border-radius:30px;
- font-size:11px;
-}
-.hero{text-align:center;padding:55px 10px 30px}
-.hero h1{font-size:clamp(29px,6vw,48px);font-weight:850;letter-spacing:-2px}
-.hero h1 span{color:var(--accent)}
-.hero p{color:var(--muted);max-width:570px;margin:12px auto}
-.panel{
- background:var(--panel);border:1px solid var(--border);
- border-radius:18px;padding:19px;margin-bottom:17px;
-}
-.section-title{font-weight:750;font-size:14px;margin-bottom:15px}
-.dropzone{
- border:1.5px dashed #41495d;border-radius:15px;
- padding:30px 15px;text-align:center;cursor:pointer;
- transition:.2s;background:#10141d;
-}
-.dropzone:hover,.dropzone.drag{
- border-color:var(--accent);background:#1b1930;
-}
-.dropzone i{font-size:32px;color:var(--accent)}
-.dropzone p{color:var(--muted);font-size:13px;margin:8px 0 0}
-.file-list{display:grid;gap:9px;margin-top:15px}
-.file-item{
- background:var(--panel2);border-radius:11px;
- padding:11px 12px;display:flex;align-items:center;gap:11px;
-}
-.file-icon{font-size:22px;color:var(--accent)}
-.file-info{min-width:0;flex:1}
-.file-info strong{
- display:block;font-size:12px;overflow:hidden;
- text-overflow:ellipsis;white-space:nowrap;
-}
-.file-info small{color:var(--muted);font-size:10px}
-.file-status{font-size:10px;color:var(--green)}
-.remove-file{
- border:0;background:transparent;color:#ef8291;font-size:18px;
-}
-.searchbox{
- display:flex;gap:9px;background:#0e121a;
- border:1px solid var(--border);padding:8px;
- border-radius:14px;align-items:center;
-}
-.searchbox textarea{
- flex:1;min-width:0;background:transparent;border:0;
- outline:none;color:white;resize:vertical;padding:9px;
- min-height:45px;max-height:140px;
-}
-.icon-btn{
- border:0;border-radius:10px;background:var(--panel2);
- color:white;width:43px;height:43px;
-}
-.icon-btn:hover{background:var(--accent)}
-.send-btn{
- border:0;border-radius:10px;background:var(--accent);
- color:white;padding:0 18px;font-weight:700;
-}
-.hint{font-size:11px;color:var(--muted);margin-top:10px}
-.result-card{
- background:var(--panel);border:1px solid var(--border);
- border-radius:14px;padding:16px;margin-bottom:12px;
-}
-.result-head{
- display:flex;justify-content:space-between;gap:10px;
- font-size:12px;margin-bottom:10px;
-}
-.result-head strong{color:#c0b8ff}
-.result-text{font-size:13px;line-height:1.8;white-space:pre-wrap}
-.result-meta{font-size:10px;color:var(--muted);margin-top:10px}
-mark{background:#594a19;color:#ffe59b;border-radius:3px}
-.loading{color:var(--accent);font-size:13px}
-.empty{
- text-align:center;padding:35px 10px;color:var(--muted);
- font-size:13px;
-}
-.answer{
- line-height:1.85;font-size:14px;white-space:pre-wrap;
-}
-.api-input{
- width:100%;background:#0c1018;border:1px solid var(--border);
- border-radius:10px;color:white;padding:11px;font-size:12px;
-}
-.footer{text-align:center;color:#5f6879;font-size:10px;margin-top:35px}
-@media(max-width:550px){
- .app{padding:14px 12px 50px}
- .hero{padding-top:38px}
- .panel{padding:14px}
- .send-btn{padding:0 13px}
-}
-</style>
-</head>
-
-<body>
-<div class="app">
-
-<header class="topbar">
- <div class="brand">
-  <div class="logo"><i class="bi bi-chat-square-text-fill"></i></div>
-  <div>
-   <h5>DISKUSI AI</h5>
-   <small>Document Intelligence Workspace</small>
-  </div>
- </div>
- <div class="badge-ai"><i class="bi bi-circle-fill"></i> AI READY</div>
-</header>
-
-<section class="hero">
- <h1>Temukan sesuatu.<br><span>Diskusikan semuanya.</span></h1>
- <p>Unggah dokumen, cari informasi, dan diskusikan isinya bersama kecerdasan buatan.</p>
-</section>
-
-<section class="panel">
- <div class="d-flex justify-content-between align-items-center mb-3">
-  <div class="section-title mb-0">
-   <i class="bi bi-folder2-open me-2"></i>RUANG DOKUMEN
-  </div>
-  <span class="text-secondary small" id="fileCount">0 file</span>
- </div>
-
- <div class="dropzone" id="dropzone">
-  <i class="bi bi-cloud-arrow-up"></i>
-  <h6 class="mt-2 mb-1">Upload banyak file</h6>
-  <p>Pilih file atau tarik file ke area ini</p>
-  <p>PDF, Excel, Word, PowerPoint, TXT, CSV, JSON, gambar</p>
-  <input type="file" id="fileInput" multiple hidden
-   accept=".pdf,.xlsx,.xls,.csv,.docx,.pptx,.txt,.md,.json,.html,.htm,.xml,.log,.png,.jpg,.jpeg,.webp">
- </div>
-
- <div class="file-list" id="fileList"></div>
-</section>
-
-<section class="panel">
- <div class="section-title">
-  <i class="bi bi-search me-2"></i>PENCARIAN & DISKUSI
- </div>
-
- <div class="searchbox">
-  <textarea id="question"
-   placeholder="Cari kata atau tanyakan sesuatu dari seluruh dokumen..."></textarea>
-
-  <button class="icon-btn" id="micBtn" title="Cari dengan suara">
-   <i class="bi bi-mic-fill"></i>
-  </button>
-
-  <button class="send-btn" id="searchBtn">
-   <i class="bi bi-arrow-up"></i>
-  </button>
- </div>
-
- <div class="hint">
-  <i class="bi bi-info-circle"></i>
-  Cari kata tertentu atau ajukan pertanyaan untuk dianalisis AI.
-  Tekan mikrofon untuk pencarian suara.
- </div>
-</section>
-
-<div class="d-flex justify-content-between align-items-center mb-3">
- <div class="section-title mb-0">
-  <i class="bi bi-stars me-2"></i>HASIL PENEMUAN
- </div>
- <button class="btn btn-sm btn-outline-secondary" id="clearBtn">
-  Bersihkan hasil
- </button>
-</div>
-
-<div id="results">
- <div class="panel empty">
-  <i class="bi bi-search fs-2 d-block mb-2"></i>
-  Belum ada pencarian. Unggah dokumen lalu mulai berdiskusi.
- </div>
-</div>
-
-<section class="panel">
- <div class="section-title">
-  <i class="bi bi-sliders me-2"></i>PENGATURAN AI
- </div>
- <label class="small text-secondary mb-2">Gemini API Key</label>
- <input type="password" class="api-input" id="apiKey"
-  placeholder="Masukkan Gemini API Key">
- <div class="d-flex gap-2 mt-3">
-  <input class="api-input" id="model"
-   value="gemini-2.5-flash" placeholder="Nama model">
-  <button class="btn btn-outline-light btn-sm" id="saveSettings">Simpan</button>
- </div>
- <div class="hint">
-  API Key hanya disimpan di browser perangkat ini. Untuk penggunaan
-  publik, pindahkan pemanggilan API ke backend agar key tidak terekspos.
- </div>
-</section>
-
-<div class="footer">
- DISKUSI AI · DOCUMENT INTELLIGENCE · 2026
-</div>
-</div>
-
-<script>
-pdfjsLib.GlobalWorkerOptions.workerSrc =
- 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
-const files = [];
-const $ = id => document.getElementById(id);
-
-const allowed = [
- 'pdf','xlsx','xls','csv','docx','pptx',
- 'txt','md','json','html','htm','xml','log'
-];
-
-function formatSize(bytes){
- return bytes < 1024*1024
- ? (bytes/1024).toFixed(1)+' KB'
- : (bytes/1024/1024).toFixed(2)+' MB';
-}
-
-function escapeHTML(s){
- return String(s).replace(/[&<>"']/g,c=>({
- '&':'&amp;','<':'&lt;','>':'&gt;',
- '"':'&quot;',"'":'&#39;'
- })[c]);
-}
-
-function fileIcon(name){
- const ext=name.split('.').pop().toLowerCase();
- if(ext==='pdf') return 'bi-file-pdf';
- if(['xlsx','xls','csv'].includes(ext)) return 'bi-file-earmark-excel';
- if(['docx'].includes(ext)) return 'bi-file-earmark-word';
- if(ext==='pptx') return 'bi-file-earmark-ppt';
- if(['png','jpg','jpeg','webp'].includes(ext)) return 'bi-file-image';
- return 'bi-file-text';
-}
-
-function renderFiles(){
- $('fileCount').textContent=files.length+' file';
- $('fileList').innerHTML=files.map((f,i)=>`
-  <div class="file-item">
-   <i class="bi ${fileIcon(f.name)} file-icon"></i>
-   <div class="file-info">
-    <strong>${escapeHTML(f.name)}</strong>
-    <small>${formatSize(f.size)} · ${f.text.length.toLocaleString()} karakter</small>
-   </div>
-   <span class="file-status">${f.status}</span>
-   <button class="remove-file" onclick="removeFile(${i})">
-    <i class="bi bi-x-circle"></i>
-   </button>
-  </div>
- `).join('');
-}
-
-function removeFile(index){
- files.splice(index,1);
- renderFiles();
-}
-
-$('dropzone').onclick=()=> $('fileInput').click();
-
-$('fileInput').onchange=e=>{
- addFiles([...e.target.files]);
- e.target.value='';
-};
-
-$('dropzone').ondragover=e=>{
- e.preventDefault();
- $('dropzone').classList.add('drag');
-};
-
-$('dropzone').ondragleave=()=>{
- $('dropzone').classList.remove('drag');
-};
-
-$('dropzone').ondrop=e=>{
- e.preventDefault();
- $('dropzone').classList.remove('drag');
- addFiles([...e.dataTransfer.files]);
-};
-
-async function addFiles(selected){
- for(const file of selected){
-  if(files.some(x=>x.name===file.name && x.size===file.size)){
-   continue;
-  }
-
-  const ext=file.name.split('.').pop().toLowerCase();
-
-  const item={
-   name:file.name,size:file.size,
-   text:'',status:'Membaca...',
-   type:file.type
-  };
-
-  files.push(item);
-  renderFiles();
-
-  try{
-   if(allowed.includes(ext)){
-    item.text=await extractText(file,ext);
-   }else if(file.type.startsWith('image/')){
-    item.text='[Gambar terunggah: '+file.name+
-     ']. Konten visual belum diekstrak untuk pencarian lokal.';
-   }else{
-    item.text='Format belum didukung untuk ekstraksi teks lokal.';
-   }
-
-   item.status=item.text.trim()?'Siap':'Kosong';
-  }catch(err){
-   item.text='';
-   item.status='Gagal dibaca';
-   console.error(err);
-  }
-  renderFiles();
- }
-}
-
-async function extractText(file,ext){
- if(['txt','md','json','html','htm','xml','log','csv'].includes(ext)){
-  return await file.text();
- }
-
- if(ext==='xlsx'||ext==='xls'){
-  const buffer=await file.arrayBuffer();
-  const workbook=XLSX.read(buffer,{type:'array'});
-  let output='';
-
-  workbook.SheetNames.forEach(name=>{
-   output+='\nSHEET: '+name+'\n';
-   output+=XLSX.utils.sheet_to_csv(workbook.Sheets[name]);
-   output+='\n';
-  });
-  return output;
- }
-
- if(ext==='pdf'){
-  const buffer=await file.arrayBuffer();
-  const pdf=await pdfjsLib.getDocument({data:buffer}).promise;
-  let output='';
-
-  for(let i=1;i<=pdf.numPages;i++){
-   const page=await pdf.getPage(i);
-   const content=await page.getTextContent();
-   output+='\n[HALAMAN '+i+']\n';
-   output+=content.items.map(x=>x.str).join(' ');
-  }
-  return output;
- }
-
- if(ext==='docx'){
-  const buffer=await file.arrayBuffer();
-  const result=await mammoth.extractRawText({arrayBuffer:buffer});
-  return result.value;
- }
-
- if(ext==='pptx'){
-  const zip=await JSZip.loadAsync(file);
-  const slides=Object.keys(zip.files)
-   .filter(x=>/^ppt\/slides\/slide\d+\.xml$/.test(x))
-   .sort((a,b)=>{
-    const na=Number(a.match(/slide(\d+)/)[1]);
-    const nb=Number(b.match(/slide(\d+)/)[1]);
-    return na-nb;
-   });
-
-  let output='';
-  for(const slide of slides){
-   const xml=await zip.files[slide].async('text');
-   const doc=new DOMParser().parseFromString(xml,'text/xml');
-   output+='\n'+[...doc.getElementsByTagName('a:t')]
-    .map(x=>x.textContent).join(' ')+'\n';
-  }
-  return output;
- }
-
- return '';
-}
-
-// PENCARIAN LOKAL
-function localSearch(query){
- const q=query.toLowerCase().trim();
- const found=[];
-
- if(!q)return found;
-
- for(const f of files){
-  if(!f.text)continue;
-
-  const content=f.text;
-  const lower=content.toLowerCase();
-  let start=0;
-
-  while(true){
-   const pos=lower.indexOf(q,start);
-   if(pos===-1)break;
-
-   const from=Math.max(0,pos-160);
-   const to=Math.min(content.length,pos+q.length+200);
-
-   found.push({
-    name:f.name,
-    text:content.slice(from,to),
-    position:pos
-   });
-
-   start=pos+q.length;
-   if(found.length>=100)break;
-  }
- }
- return found;
-}
-
-function renderLocalResults(query,found){
- let html=`
-  <div class="result-card">
-   <div class="result-head">
-    <strong><i class="bi bi-search"></i> HASIL PENCARIAN LOKAL</strong>
-    <span>${found.length} temuan</span>
-   </div>
-   <div class="result-text">
-    Kata pencarian: <b>${escapeHTML(query)}</b>
-   </div>
-  </div>`;
-
- if(!found.length){
-  html+=`<div class="panel empty">Tidak ditemukan kata yang cocok dalam dokumen.</div>`;
- }
-
- found.forEach((x,i)=>{
-  const safe=escapeHTML(x.text);
-  const escaped=escapeHTML(query).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-  const highlighted=safe.replace(new RegExp(escaped,'gi'),m=>'<mark>'+m+'</mark>');
-
-  html+=`
-   <div class="result-card">
-    <div class="result-head">
-     <strong><i class="bi bi-file-earmark-text"></i> ${escapeHTML(x.name)}</strong>
-     <span>Temuan ${i+1}</span>
-    </div>
-    <div class="result-text">...${highlighted}...</div>
-    <div class="result-meta">Posisi karakter: ${x.position}</div>
-   </div>`;
- });
-
- $('results').innerHTML=html;
-}
-
-// AI
-async function askGemini(question){
- const key=$('apiKey').value.trim();
- const model=$('model').value.trim()||'gemini-2.5-flash';
-
- if(!key)throw new Error('Masukkan Gemini API Key terlebih dahulu.');
-
- const usable=files.filter(f=>f.text.trim());
-
- if(!usable.length)throw new Error('Belum ada dokumen yang berhasil dibaca.');
-
- // Membatasi ukuran konteks untuk menghindari request terlalu besar.
- const MAX=45000;
- let context='';
- let remaining=MAX;
-
- for(const f of usable){
-  if(remaining<=0)break;
-
-  const part=f.text.slice(0,remaining);
-  context+=`\n\n===== FILE: ${f.name} =====\n${part}`;
-  remaining-=part.length;
- }
-
- const prompt=`
-Kamu adalah DISKUSI AI, asisten analisis dokumen.
-
-Jawab pertanyaan berdasarkan dokumen yang diberikan.
-Jangan mengarang informasi yang tidak ditemukan.
-Sebutkan nama file sebagai sumber setiap temuan.
-Jika informasi tidak tersedia, katakan dengan jelas.
-Gunakan bahasa Indonesia yang mudah dipahami.
-Jika ada angka, perhatikan satuan dan konteksnya.
-Jika ada perbedaan data antarfile, jelaskan.
-
-DOKUMEN:
-${context}
-
-PERTANYAAN:
-${question}
-`;
-
- const response=await fetch(
-  `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`,
-  {
-   method:'POST',
-   headers:{'Content-Type':'application/json'},
-   body:JSON.stringify({
-    contents:[{
-     parts:[{text:prompt}]
-    }],
-    generationConfig:{
-     temperature:0.2,
-     maxOutputTokens:4096
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>ASW - AI Search Word</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Document Parsers -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              900: '#312e81'
+            }
+          }
+        }
+      }
+    };
+    if (window.pdfjsLib) {
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     }
-   })
-  }
- );
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .glass-card {
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(99, 102, 241, 0.35);
+      border-radius: 9999px;
+    }
+    @keyframes pulseRing {
+      0% { transform: scale(0.95); opacity: 0.85; }
+      50% { transform: scale(1.05); opacity: 0.45; }
+      100% { transform: scale(0.95); opacity: 0.85; }
+    }
+    .animate-pulse-ring {
+      animation: pulseRing 2s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-200 min-h-screen flex flex-col">
 
- const data=await response.json();
+  <!-- TOAST CONTAINER -->
+  <div id="toast-container" class="fixed top-4 right-4 z-[100] flex flex-col gap-2 max-w-xs w-full pointer-events-none"></div>
 
- if(!response.ok){
-  throw new Error(data.error?.message||'Permintaan AI gagal.');
- }
-
- return data.candidates?.[0]?.content?.parts
-  ?.map(p=>p.text||'').join('\n')||'AI tidak memberikan jawaban.';
-}
-
-async function runSearch(){
- const question=$('question').value.trim();
- if(!question)return;
-
- if(!files.length){
-  showMessage('Upload dokumen terlebih dahulu.');
-  return;
- }
-
- $('results').innerHTML=`
-  <div class="result-card">
-   <div class="loading">
-    <i class="bi bi-arrow-repeat"></i>
-    Sedang mencari dan menganalisis dokumen...
-   </div>
-  </div>`;
-
- // Pencarian lokal untuk semua format teks yang berhasil diekstrak.
- const found=localSearch(question);
-
- // Jika pertanyaan singkat, tampilkan pencarian lokal.
- const isQuestion=/^(apa|siapa|berapa|kapan|dimana|mengapa|bagaimana|bandingkan|analisis|jelaskan|cari tahu)/i.test(question);
-
- if(!isQuestion){
-  renderLocalResults(question,found);
-  return;
- }
-
- try{
-  const answer=await askGemini(question);
-
-  let html=`
-   <div class="result-card">
-    <div class="result-head">
-     <strong><i class="bi bi-stars"></i> ANALISIS AI</strong>
-     <span class="text-success">Selesai</span>
+  <!-- MODERN CUSTOM MODAL -->
+  <div id="custom-modal" class="fixed inset-0 z-[90] hidden items-center justify-center p-4 bg-slate-900/65 backdrop-blur-sm transition-opacity">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-2xl w-full p-6 shadow-2xl transform transition-all scale-95 opacity-0" id="custom-modal-box">
+      <div class="flex items-start justify-between gap-3 mb-4">
+        <div class="flex items-center gap-3">
+          <div id="modal-icon-wrap" class="w-10 h-10 rounded-xl bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 flex items-center justify-center shrink-0">
+            <i data-lucide="info" class="w-5 h-5"></i>
+          </div>
+          <h3 id="modal-title" class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Informasi</h3>
+        </div>
+        <button onclick="closeModal()" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div id="modal-body" class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-6 max-h-[65vh] overflow-y-auto custom-scrollbar"></div>
+      <div id="modal-actions" class="flex items-center justify-end gap-2"></div>
     </div>
-    <div class="answer">${escapeHTML(answer)}</div>
-   </div>`;
+  </div>
 
-  html+=`
-   <div class="result-card">
-    <div class="result-head">
-     <strong><i class="bi bi-search"></i> PENCOCOKAN KATA LOKAL</strong>
-     <span>${found.length} temuan</span>
+  <!-- AUTH SCREEN (REGISTER / LOGIN) -->
+  <div id="auth-screen" class="flex-1 flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl">
+      <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-2xl bg-brand-600 text-white flex items-center justify-center shadow-lg shadow-brand-600/30">
+            <i data-lucide="scan-search" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <h1 class="text-xl font-extrabold tracking-tight">ASW</h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400">AI Search Word Engine</p>
+          </div>
+        </div>
+        <button onclick="toggleTheme()" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800" title="Ganti Tema">
+          <i data-lucide="moon" class="w-4 h-4 dark:hidden"></i>
+          <i data-lucide="sun" class="w-4 h-4 hidden dark:block"></i>
+        </button>
+      </div>
+
+      <!-- Auth Tabs -->
+      <div class="grid grid-cols-2 gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl mb-6">
+        <button id="tab-register" onclick="switchAuthTab('register')" class="py-2 text-sm font-semibold rounded-lg bg-white dark:bg-slate-900 text-brand-600 dark:text-brand-400 shadow-sm transition">
+          Pengguna Baru
+        </button>
+        <button id="tab-login" onclick="switchAuthTab('login')" class="py-2 text-sm font-semibold rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white transition">
+          Sudah Terdaftar
+        </button>
+      </div>
+
+      <!-- Register Form -->
+      <form id="form-register" onsubmit="handleRegister(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Nama Lengkap</label>
+          <div class="relative">
+            <i data-lucide="user" class="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5"></i>
+            <input type="text" id="reg-name" required placeholder="Masukkan nama lengkap Anda" class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Profesi</label>
+          <div class="relative">
+            <i data-lucide="briefcase" class="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5"></i>
+            <input type="text" id="reg-profession" required placeholder="Contoh: Admin, Analis Data, Mahasiswa" class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Tujuan Penggunaan</label>
+          <div class="relative">
+            <i data-lucide="target" class="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5"></i>
+            <input type="text" id="reg-purpose" required placeholder="Contoh: Pencarian kata & rekap file kerja" class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">ID Pengguna (Nomor HP)</label>
+          <div class="relative">
+            <i data-lucide="phone" class="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5"></i>
+            <input type="tel" id="reg-phone" required placeholder="Contoh: 081234567890" class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+          </div>
+        </div>
+        <button type="submit" id="btn-register" class="w-full py-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-semibold text-sm shadow-lg shadow-brand-600/25 flex items-center justify-center gap-2 transition">
+          <span>Lanjut Daftar & Masuk</span>
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </button>
+      </form>
+
+      <!-- Login Form -->
+      <form id="form-login" onsubmit="handleLogin(event)" class="space-y-4 hidden">
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">ID Pengguna (Nomor HP Terdaftar)</label>
+          <div class="relative">
+            <i data-lucide="smartphone" class="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5"></i>
+            <input type="tel" id="login-phone" required placeholder="Masukkan Nomor HP Anda" class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+          </div>
+        </div>
+        <button type="submit" id="btn-login" class="w-full py-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-semibold text-sm shadow-lg shadow-brand-600/25 flex items-center justify-center gap-2 transition">
+          <span>Masuk Sekarang</span>
+          <i data-lucide="log-in" class="w-4 h-4"></i>
+        </button>
+      </form>
     </div>
-    ${found.slice(0,20).map(x=>`
-     <div class="border-bottom border-secondary py-2">
-      <small class="text-info">${escapeHTML(x.name)}</small>
-      <div class="result-text">${escapeHTML(x.text)}</div>
-     </div>
-    `).join('')||'<small class="text-secondary">Tidak ada kecocokan kata persis. AI tetap menganalisis konteks dokumen.</small>'}
-   </div>`;
+  </div>
 
-  $('results').innerHTML=html;
+  <!-- MAIN APPLICATION SHELL -->
+  <div id="app-shell" class="hidden flex-1 flex flex-col max-w-4xl w-full mx-auto pb-24">
+    <!-- Top Header -->
+    <header class="sticky top-0 z-30 bg-white/85 dark:bg-slate-950/85 glass-card border-b border-slate-200 dark:border-slate-800 px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-brand-600 text-white flex items-center justify-center shadow-sm">
+          <i data-lucide="scan-search" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-1.5">
+            <span class="font-extrabold text-base tracking-tight">ASW</span>
+            <span id="header-badge" class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300">FREE</span>
+          </div>
+          <p id="header-agent" class="text-[11px] text-slate-500 dark:text-slate-400">Agent: Standard Search</p>
+        </div>
+      </div>
 
- }catch(err){
-  $('results').innerHTML=`
-   <div class="result-card">
-    <strong class="text-danger">AI gagal memproses</strong>
-    <p class="mt-2 mb-0 small">${escapeHTML(err.message)}</p>
-    <hr>
-    <small class="text-secondary">
-     Hasil pencarian lokal: ${found.length} temuan.
-    </small>
-   </div>`;
- }
-}
+      <div class="flex items-center gap-2">
+        <div id="header-limit-pill" class="text-xs font-semibold px-3 py-1.5 rounded-xl bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 border border-brand-200/50 dark:border-brand-800/50">
+          Limit: 0
+        </div>
+        <button onclick="toggleTheme()" class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800" title="Mode Gelap/Terang">
+          <i data-lucide="moon" class="w-4 h-4 dark:hidden"></i>
+          <i data-lucide="sun" class="w-4 h-4 hidden dark:block"></i>
+        </button>
+      </div>
+    </header>
 
-function showMessage(msg){
- $('results').innerHTML=`
-  <div class="result-card text-warning small">
-   <i class="bi bi-exclamation-circle"></i> ${escapeHTML(msg)}
-  </div>`;
-}
+    <!-- VIEW 1: HISTORY -->
+    <main id="view-history" class="hidden p-4 space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 class="text-lg font-bold">Riwayat Pencarian</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Klik kartu riwayat untuk pratinjau hasil, sematkan, arsipkan, atau tandai hapus</p>
+        </div>
+        <div class="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-800 self-start">
+          <button onclick="setHistoryFilter('all')" id="hfilter-all" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white dark:bg-slate-800 shadow-sm text-brand-600 dark:text-brand-400">Semua</button>
+          <button onclick="setHistoryFilter('pinned')" id="hfilter-pinned" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-500">Disematkan</button>
+          <button onclick="setHistoryFilter('archived')" id="hfilter-archived" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-500">Arsip</button>
+        </div>
+      </div>
 
-$('searchBtn').onclick=runSearch;
+      <!-- Search Bar & Bulk Select Toolbar in History -->
+      <div class="flex flex-col sm:flex-row gap-2">
+        <div class="relative flex-1">
+          <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-3"></i>
+          <input type="text" id="history-search-input" oninput="renderHistories()" placeholder="Cari kata kunci atau nama file di riwayat..." class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-brand-500" />
+        </div>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="toggleHistorySelectMode()" id="btn-history-select-mode" class="px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-1.5">
+            <i data-lucide="check-square" class="w-4 h-4 text-brand-600"></i>
+            <span>Pilih Tandai Hapus</span>
+          </button>
+          <button type="button" onclick="deleteSelectedHistories()" id="btn-delete-selected-histories" class="hidden px-3.5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold items-center gap-1.5">
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+            <span>Hapus Terpilih (<span id="selected-history-count">0</span>)</span>
+          </button>
+        </div>
+      </div>
 
-$('question').addEventListener('keydown',e=>{
- if(e.key==='Enter'&&!e.shiftKey){
-  e.preventDefault();
-  runSearch();
- }
-});
+      <div id="history-list" class="space-y-3"></div>
+    </main>
 
-$('clearBtn').onclick=()=>{
- $('results').innerHTML=`
-  <div class="panel empty">Hasil pencarian dibersihkan.</div>`;
-};
+    <!-- VIEW 2: KACA PEMBESAR (SEARCH ENGINE) -->
+    <main id="view-search" class="p-4 space-y-4">
+      <!-- Search Config Card -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-sm space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <i data-lucide="sliders-horizontal" class="w-4 h-4 text-brand-600"></i>
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Cara Ambil Data</span>
+          </div>
+          <!-- Horizontal / Vertical Selector -->
+          <div class="grid grid-cols-2 gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl">
+            <button type="button" id="dir-horizontal" onclick="setSearchDirection('horizontal')" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white dark:bg-slate-900 text-brand-600 dark:text-brand-400 shadow-sm transition">
+              <i data-lucide="arrow-left-right" class="w-3.5 h-3.5"></i>
+              <span>Horizontal</span>
+            </button>
+            <button type="button" id="dir-vertical" onclick="setSearchDirection('vertical')" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-500 dark:text-slate-400 transition">
+              <i data-lucide="arrow-down-up" class="w-3.5 h-3.5"></i>
+              <span>Vertikal</span>
+            </button>
+          </div>
+        </div>
 
-// VOICE SEARCH
-const SpeechRecognition=
- window.SpeechRecognition||window.webkitSpeechRecognition;
+        <!-- Direction Mode Explanation Pill -->
+        <div id="direction-guide" class="text-[11px] px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/70 text-slate-600 dark:text-slate-300 flex items-center gap-2">
+          <i data-lucide="table-2" class="w-4 h-4 text-brand-500 shrink-0"></i>
+          <span><strong>Mode Horizontal:</strong> Mengambil Baris 1 (Header paling atas) dan Baris 2 (seluruh teks sebaris sejajar dari paling kiri hingga paling kanan akhir).</span>
+        </div>
 
-if(SpeechRecognition){
- const recognition=new SpeechRecognition();
- recognition.lang='id-ID';
- recognition.interimResults=false;
+        <!-- Multi File Upload Zone -->
+        <div id="dropzone" onclick="document.getElementById('file-input').click()" class="border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-brand-500 dark:hover:border-brand-500 rounded-2xl p-5 text-center cursor-pointer transition bg-slate-50/60 dark:bg-slate-800/30">
+          <input type="file" id="file-input" multiple class="hidden" onchange="handleFilesSelected(event)" />
+          <div class="w-11 h-11 rounded-2xl bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 flex items-center justify-center mx-auto mb-2.5">
+            <i data-lucide="file-up" class="w-6 h-6"></i>
+          </div>
+          <p class="text-sm font-semibold">Unggah Banyak File Format Apapun</p>
+          <p id="upload-hint" class="text-xs text-slate-500 dark:text-slate-400 mt-1">Mendukung XLSX, XLS, CSV, DOCX, PDF, TXT, JSON, XML, dan dokumen lainnya</p>
+        </div>
 
- $('micBtn').onclick=()=>{
-  recognition.start();
-  $('micBtn').style.background='var(--green)';
- };
+        <!-- Uploaded Files Pills -->
+        <div id="uploaded-files-list" class="flex flex-wrap gap-2 hidden"></div>
 
- recognition.onresult=e=>{
-  $('question').value=e.results[0][0].transcript;
-  $('micBtn').style.background='';
-  runSearch();
- };
+        <!-- Keyword Input + Voice -->
+        <div class="space-y-2">
+          <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400">Kata Kunci Pencarian (Sebaris / Sejajar)</label>
+          <div class="relative flex items-center">
+            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5"></i>
+            <input type="text" id="search-query" placeholder="Ketik kata yang dicari di semua file atau gunakan suara..." class="w-full pl-10 pr-12 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/70 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+            <button type="button" id="btn-voice" onclick="startVoiceInput()" title="Ketik via Suara" class="absolute right-2 p-2 rounded-lg text-slate-500 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-slate-700 transition">
+              <i data-lucide="mic" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
 
- recognition.onerror=()=>{
-  $('micBtn').style.background='';
-  showMessage('Mikrofon gagal digunakan. Periksa izin browser.');
- };
+        <!-- Pro Subscriber Option: Analyze with AI Checkbox -->
+        <div id="pro-ai-option-box" class="hidden p-3 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/60 flex items-center justify-between gap-2">
+          <label class="flex items-center gap-2.5 cursor-pointer select-none">
+            <input type="checkbox" id="chk-analyze-ai" class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500" />
+            <div>
+              <span class="text-xs font-bold text-amber-900 dark:text-amber-200 flex items-center gap-1.5">
+                <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-500"></i>
+                Analyze with AI (Smart AI Router)
+              </span>
+              <span class="text-[11px] text-amber-700 dark:text-amber-400 block">Analisis & rangkum otomatis hasil temuan file dengan model AI aktif Anda</span>
+            </div>
+          </label>
+        </div>
 
- recognition.onend=()=>{
-  $('micBtn').style.background='';
- };
-}else{
- $('micBtn').onclick=()=>{
-  showMessage('Browser ini belum mendukung fitur voice search.');
- };
-}
+        <!-- Status & Action Button -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+          <div id="search-status-info" class="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+            <i data-lucide="shield-check" class="w-4 h-4 text-emerald-500 shrink-0"></i>
+            <span>Memuat status paket...</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button type="button" id="btn-cancel-search" onclick="cancelSearch()" class="hidden px-4 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold items-center gap-1.5 transition">
+              <i data-lucide="square" class="w-3.5 h-3.5"></i>
+              <span>Batalkan</span>
+            </button>
+            <button type="button" id="btn-execute-search" onclick="executeSearch()" class="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold shadow-lg shadow-brand-600/25 flex items-center justify-center gap-2 transition">
+              <i data-lucide="search" class="w-4 h-4"></i>
+              <span>Cari Sekarang</span>
+            </button>
+          </div>
+        </div>
+      </div>
 
-// PENGATURAN
-$('saveSettings').onclick=()=>{
- localStorage.setItem('diskusi_api', $('apiKey').value);
- localStorage.setItem('diskusi_model', $('model').value);
- alert('Pengaturan disimpan di browser.');
-};
+      <!-- Countdown / Searching Progress Banner -->
+      <div id="search-progress-card" class="hidden bg-brand-600 text-white rounded-2xl p-4 shadow-lg flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center animate-pulse-ring">
+            <i data-lucide="cpu" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <p id="search-progress-title" class="text-sm font-bold">Memindai Dokumen & Menyelaraskan Baris...</p>
+            <p id="search-progress-sub" class="text-xs text-brand-100">Perkiraan selesai dalam <span id="countdown-seconds" class="font-extrabold">5</span> detik</p>
+          </div>
+        </div>
+        <button onclick="cancelSearch()" class="px-3 py-1.5 rounded-lg bg-white/15 hover:bg-white/25 text-xs font-semibold">
+          Batalkan
+        </button>
+      </div>
 
-$('apiKey').value=localStorage.getItem('diskusi_api')||'';
-$('model').value=localStorage.getItem('diskusi_model')||'gemini-2.5-flash';
+      <!-- Search Results Area -->
+      <div id="search-results-container" class="space-y-4"></div>
 
-</script>
+      <!-- FAB: Cari Baru -->
+      <button onclick="resetNewSearch()" title="Cari Baru" class="fixed bottom-20 right-5 z-20 px-4 py-3.5 rounded-2xl bg-brand-600 hover:bg-brand-700 text-white shadow-xl shadow-brand-600/35 flex items-center gap-2 transition transform hover:scale-105">
+        <i data-lucide="plus" class="w-5 h-5"></i>
+        <span class="text-xs font-bold hidden sm:inline">Cari Baru</span>
+      </button>
+    </main>
+
+    <!-- VIEW 3: PROFIL & MENU -->
+    <main id="view-profile" class="hidden p-4 space-y-4">
+      <!-- Profile Header Card -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3.5">
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-500 to-indigo-700 text-white flex items-center justify-center font-extrabold text-xl shadow-md">
+            <span id="profile-avatar-initial">U</span>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <h2 id="profile-name" class="text-base font-extrabold">Nama Pengguna</h2>
+              <span id="profile-badge" class="inline-flex items-center gap-1 text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                <i data-lucide="badge-check" class="w-3 h-3"></i>
+                <span>FREE</span>
+              </span>
+            </div>
+            <p id="profile-id" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">ID: -</p>
+            <p id="profile-meta" class="text-[11px] text-slate-400 mt-0.5">-</p>
+          </div>
+        </div>
+        <button onclick="handleLogout()" class="p-2.5 rounded-xl border border-rose-200 dark:border-rose-900/50 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40" title="Keluar Akun">
+          <i data-lucide="log-out" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Profile Sub-Menu Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+        <button onclick="openProfileSection('messages')" class="flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-brand-500 transition text-left">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-900/30 text-sky-600 flex items-center justify-center">
+              <i data-lucide="mail" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <p class="text-sm font-bold">Pesan</p>
+              <p class="text-xs text-slate-500">Notifikasi & link pembayaran admin</p>
+            </div>
+          </div>
+          <span id="unread-msg-badge" class="hidden px-2 py-0.5 text-xs font-bold rounded-full bg-rose-500 text-white">0</span>
+        </button>
+
+        <button onclick="openProfileSection('intelligence')" class="flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-brand-500 transition text-left">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-900/30 text-purple-600 flex items-center justify-center">
+              <i data-lucide="brain-circuit" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <p class="text-sm font-bold">Kecerdasan</p>
+              <p class="text-xs text-slate-500">Paket, Agent, Sisa Limit & Expired</p>
+            </div>
+          </div>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
+        </button>
+
+        <button onclick="openProfileSection('subscription')" class="flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-brand-500 transition text-left">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-900/30 text-amber-600 flex items-center justify-center">
+              <i data-lucide="crown" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <p class="text-sm font-bold">Langganan ASW</p>
+              <p class="text-xs text-slate-500">Upgrade akses cepat & AI tanpa batas</p>
+            </div>
+          </div>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
+        </button>
+
+        <button onclick="openProfileSection('feedback')" class="flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-brand-500 transition text-left">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 flex items-center justify-center">
+              <i data-lucide="message-square-plus" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <p class="text-sm font-bold">Kirim Feedback</p>
+              <p class="text-xs text-slate-500">Kritik, saran, pengaduan & konfirmasi</p>
+            </div>
+          </div>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
+        </button>
+
+        <button onclick="openProfileSection('terms')" class="flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-brand-500 transition text-left">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center">
+              <i data-lucide="book-open-check" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <p class="text-sm font-bold">Syarat, Ketentuan & Petunjuk</p>
+              <p class="text-xs text-slate-500">Panduan penggunaan aplikasi ASW</p>
+            </div>
+          </div>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
+        </button>
+
+        <div class="flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-brand-50 dark:bg-brand-900/30 text-brand-600 flex items-center justify-center">
+              <i data-lucide="info" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <p class="text-sm font-bold">Versi Aplikasi</p>
+              <p class="text-xs text-slate-500">ASW Engine v1.2.0 ©2026 ASW AI ENGINE</p>
+            </div>
+          </div>
+          <span class="text-xs font-mono font-semibold text-brand-600">v1.2.0</span>
+        </div>
+      </div>
+
+      <!-- Dynamic Profile Sub-Content Panel -->
+      <div id="profile-sub-panel" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm hidden"></div>
+    </main>
+
+    <!-- BOTTOM NAVIGATION BAR (3 ICONS: HISTORY, KACA PEMBESAR, PROFIL) -->
+    <nav class="fixed bottom-0 inset-x-0 z-30 bg-white/90 dark:bg-slate-950/90 glass-card border-t border-slate-200 dark:border-slate-800">
+      <div class="max-w-md mx-auto grid grid-cols-3 h-16">
+        <button onclick="switchMainView('history')" id="nav-history" class="flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-brand-600 transition">
+          <i data-lucide="history" class="w-5 h-5"></i>
+          <span class="text-[11px] font-semibold">History</span>
+        </button>
+        <button onclick="switchMainView('search')" id="nav-search" class="flex flex-col items-center justify-center gap-1 text-brand-600 dark:text-brand-400 transition">
+          <div class="p-1.5 rounded-xl bg-brand-50 dark:bg-brand-900/40">
+            <i data-lucide="search" class="w-5 h-5"></i>
+          </div>
+          <span class="text-[11px] font-bold">ASW</span>
+        </button>
+        <button onclick="switchMainView('profile')" id="nav-profile" class="flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-brand-600 transition relative">
+          <i data-lucide="user-circle" class="w-5 h-5"></i>
+          <span class="text-[11px] font-semibold">Profil</span>
+        </button>
+      </div>
+    </nav>
+  </div>
+
+  <!-- FIREBASE & APP LOGIC -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getDatabase, ref, set, get, push, update, remove, onValue, onDisconnect, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBEvuKXLcgJENB-5RSDrlzG9ypvKusuYpo",
+      authDomain: "ai-analyst-97968.firebaseapp.com",
+      databaseURL: "https://ai-analyst-97968-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "ai-analyst-97968",
+      storageBucket: "ai-analyst-97968.firebasestorage.app",
+      messagingSenderId: "419796858302",
+      appId: "1:419796858302:web:c54f532720f2f1ebba75ef"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+
+    // Global State
+    let currentUser = null;
+    let currentPhoneId = localStorage.getItem("asw_user_phone") || null;
+    let freeSettings = { agentName: "ASW Standard Engine", defaultLimit: 5 };
+    let parsedFilesData = []; // [{ fileName, sheets: [{ sheetName, rows: [][] }] }]
+    let searchDirection = "horizontal";
+    let isSearching = false;
+    let searchAbortController = null;
+    let countdownInterval = null;
+    let userHistories = [];
+    let historyFilter = "all";
+    let historySelectMode = false;
+    let selectedHistoryIds = new Set();
+    let userMessages = [];
+
+    // Initialize Icons & Theme
+    lucide.createIcons();
+    if (localStorage.getItem("asw_theme") === "dark") {
+      document.documentElement.classList.add("dark");
+    }
+
+    window.toggleTheme = () => {
+      const isDark = document.documentElement.classList.toggle("dark");
+      localStorage.setItem("asw_theme", isDark ? "dark" : "light");
+      lucide.createIcons();
+    };
+
+    // Custom Toast Notification
+    window.showToast = (message, type = "info") => {
+      const container = document.getElementById("toast-container");
+      const toast = document.createElement("div");
+      const colors = {
+        info: "bg-slate-900 dark:bg-slate-800 text-white border-slate-700",
+        success: "bg-emerald-600 text-white border-emerald-500",
+        error: "bg-rose-600 text-white border-rose-500",
+        warning: "bg-amber-600 text-white border-amber-500"
+      };
+      const icons = { info: "info", success: "check-circle-2", error: "alert-circle", warning: "alert-triangle" };
+      toast.className = `pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-xl border shadow-lg text-xs font-semibold transform transition-all duration-300 translate-x-full opacity-0 ${colors[type] || colors.info}`;
+      toast.innerHTML = `<i data-lucide="${icons[type] || 'info'}" class="w-4 h-4 shrink-0"></i><span>${message}</span>`;
+      container.appendChild(toast);
+      lucide.createIcons();
+      requestAnimationFrame(() => {
+        toast.classList.remove("translate-x-full", "opacity-0");
+      });
+      setTimeout(() => {
+        toast.classList.add("translate-x-full", "opacity-0");
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    };
+
+    // Custom Modal
+    window.showModal = ({ title, html, icon = "info", confirmText = "Tutup", cancelText = null, onConfirm = null }) => {
+      const modal = document.getElementById("custom-modal");
+      const box = document.getElementById("custom-modal-box");
+      document.getElementById("modal-title").textContent = title;
+      document.getElementById("modal-body").innerHTML = html;
+      document.getElementById("modal-icon-wrap").innerHTML = `<i data-lucide="${icon}" class="w-5 h-5"></i>`;
+
+      const actions = document.getElementById("modal-actions");
+      actions.innerHTML = "";
+      if (cancelText) {
+        const btnCancel = document.createElement("button");
+        btnCancel.className = "px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800";
+        btnCancel.textContent = cancelText;
+        btnCancel.onclick = () => closeModal();
+        actions.appendChild(btnCancel);
+      }
+      const btnConfirm = document.createElement("button");
+      btnConfirm.className = "px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold";
+      btnConfirm.textContent = confirmText;
+      btnConfirm.onclick = () => {
+        if (onConfirm) onConfirm();
+        closeModal();
+      };
+      actions.appendChild(btnConfirm);
+
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+      lucide.createIcons();
+      requestAnimationFrame(() => {
+        box.classList.remove("scale-95", "opacity-0");
+      });
+    };
+
+    window.closeModal = () => {
+      const modal = document.getElementById("custom-modal");
+      const box = document.getElementById("custom-modal-box");
+      box.classList.add("scale-95", "opacity-0");
+      setTimeout(() => {
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+      }, 150);
+    };
+
+    // Ensure Anonymous Auth
+    signInAnonymously(auth).catch((err) => {
+      showToast("Gagal terhubung ke layanan autentikasi: " + err.message, "error");
+    });
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        onValue(ref(db, "settings/freeTier"), (snap) => {
+          if (snap.exists()) {
+            freeSettings = { ...freeSettings, ...snap.val() };
+            if (currentUser && !isUserSubscriptionActive(currentUser)) {
+              updateUserUI();
+            }
+          }
+        });
+
+        if (currentPhoneId) {
+          await bindUserSession(currentPhoneId);
+        }
+      }
+    });
+
+    // Switch Auth Tab
+    window.switchAuthTab = (tab) => {
+      const regForm = document.getElementById("form-register");
+      const logForm = document.getElementById("form-login");
+      const tabReg = document.getElementById("tab-register");
+      const tabLog = document.getElementById("tab-login");
+
+      if (tab === "register") {
+        regForm.classList.remove("hidden");
+        logForm.classList.add("hidden");
+        tabReg.className = "py-2 text-sm font-semibold rounded-lg bg-white dark:bg-slate-900 text-brand-600 dark:text-brand-400 shadow-sm transition";
+        tabLog.className = "py-2 text-sm font-semibold rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white transition";
+      } else {
+        regForm.classList.add("hidden");
+        logForm.classList.remove("hidden");
+        tabLog.className = "py-2 text-sm font-semibold rounded-lg bg-white dark:bg-slate-900 text-brand-600 dark:text-brand-400 shadow-sm transition";
+        tabReg.className = "py-2 text-sm font-semibold rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white transition";
+      }
+    };
+
+    function sanitizePhone(phone) {
+      return phone.replace(/[^0-9]/g, "");
+    }
+
+    // Register New User
+    window.handleRegister = async (e) => {
+      e.preventDefault();
+      const name = document.getElementById("reg-name").value.trim();
+      const profession = document.getElementById("reg-profession").value.trim();
+      const purpose = document.getElementById("reg-purpose").value.trim();
+      const phone = sanitizePhone(document.getElementById("reg-phone").value.trim());
+
+      if (phone.length < 8) {
+        showToast("Nomor HP tidak valid minimal 8 digit.", "warning");
+        return;
+      }
+
+      const btn = document.getElementById("btn-register");
+      btn.disabled = true;
+
+      try {
+        const userRef = ref(db, `users/${phone}`);
+        const snap = await get(userRef);
+        if (snap.exists()) {
+          showToast("ID / Nomor HP sudah terdaftar. Silakan masuk.", "warning");
+          switchAuthTab("login");
+          document.getElementById("login-phone").value = phone;
+          btn.disabled = false;
+          return;
+        }
+
+        const freeSnap = await get(ref(db, "settings/freeTier"));
+        const fConfig = freeSnap.exists() ? freeSnap.val() : { agentName: "ASW Standard Engine", defaultLimit: 5 };
+
+        const newUser = {
+          name,
+          profession,
+          purpose,
+          phone,
+          createdAt: Date.now(),
+          online: true,
+          lastSeen: Date.now(),
+          isPro: false,
+          planName: "Free Plan",
+          agentName: fConfig.agentName || "ASW Standard Engine",
+          limitRemaining: Number(fConfig.defaultLimit ?? 5),
+          expiresAt: null,
+          assignedAIs: []
+        };
+
+        await set(userRef, newUser);
+        localStorage.setItem("asw_user_phone", phone);
+        currentPhoneId = phone;
+        await bindUserSession(phone);
+        showToast("Pendaftaran berhasil! Selamat datang di ASW.", "success");
+      } catch (err) {
+        showToast("Gagal mendaftar: " + err.message, "error");
+      } finally {
+        btn.disabled = false;
+      }
+    };
+
+    // Login Existing User
+    window.handleLogin = async (e) => {
+      e.preventDefault();
+      const phone = sanitizePhone(document.getElementById("login-phone").value.trim());
+      if (!phone) return;
+
+      const btn = document.getElementById("btn-login");
+      btn.disabled = true;
+
+      try {
+        const userRef = ref(db, `users/${phone}`);
+        const snap = await get(userRef);
+        if (!snap.exists()) {
+          showToast("ID / Nomor HP tidak ditemukan. Silakan daftar baru.", "error");
+          btn.disabled = false;
+          return;
+        }
+
+        localStorage.setItem("asw_user_phone", phone);
+        currentPhoneId = phone;
+        await bindUserSession(phone);
+        showToast("Berhasil masuk ke akun Anda.", "success");
+      } catch (err) {
+        showToast("Gagal masuk: " + err.message, "error");
+      } finally {
+        btn.disabled = false;
+      }
+    };
+
+    function isUserSubscriptionActive(user) {
+      if (!user || !user.isPro) return false;
+      if (!user.expiresAt) return true;
+      return Number(user.expiresAt) > Date.now();
+    }
+
+    // Bind Realtime User Data, Presence, Histories & Messages
+    async function bindUserSession(phone) {
+      const userRef = ref(db, `users/${phone}`);
+      const initialSnap = await get(userRef);
+      if (!initialSnap.exists()) {
+        localStorage.removeItem("asw_user_phone");
+        currentPhoneId = null;
+        return;
+      }
+
+      document.getElementById("auth-screen").classList.add("hidden");
+      document.getElementById("app-shell").classList.remove("hidden");
+
+      // Realtime Presence
+      const connectedRef = ref(db, ".info/connected");
+      onValue(connectedRef, (snap) => {
+        if (snap.val() === true) {
+          update(userRef, { online: true, lastSeen: serverTimestamp() });
+          onDisconnect(userRef).update({ online: false, lastSeen: serverTimestamp() });
+        }
+      });
+
+      // Listen to User Profile Changes
+      onValue(userRef, (snap) => {
+        if (!snap.exists()) return;
+        currentUser = snap.val();
+        updateUserUI();
+      });
+
+      // Listen to User Search Histories
+      onValue(ref(db, `histories/${phone}`), (snap) => {
+        const list = [];
+        if (snap.exists()) {
+          snap.forEach((child) => {
+            list.push({ id: child.key, ...child.val() });
+          });
+        }
+        userHistories = list.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || b.timestamp - a.timestamp);
+        renderHistories();
+      });
+
+      // Listen to Admin Messages
+      onValue(ref(db, `messages/${phone}`), (snap) => {
+        const msgs = [];
+        let unread = 0;
+        if (snap.exists()) {
+          snap.forEach((child) => {
+            const val = child.val();
+            if (!val.read) unread++;
+            msgs.push({ id: child.key, ...val });
+          });
+        }
+        userMessages = msgs.sort((a, b) => b.timestamp - a.timestamp);
+        const badge = document.getElementById("unread-msg-badge");
+        if (unread > 0) {
+          badge.textContent = unread;
+          badge.classList.remove("hidden");
+        } else {
+          badge.classList.add("hidden");
+        }
+      });
+    }
+
+    function updateUserUI() {
+      if (!currentUser) return;
+      const activePro = isUserSubscriptionActive(currentUser);
+      const agentName = activePro
+        ? (currentUser.agentName || "ASW Pro AI Router")
+        : (currentUser.agentName || freeSettings.agentName || "ASW Standard Engine");
+
+      // Header
+      const headerBadge = document.getElementById("header-badge");
+      headerBadge.textContent = activePro ? (currentUser.planName || "PRO") : "FREE";
+      headerBadge.className = activePro
+        ? "text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300"
+        : "text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300";
+
+      document.getElementById("header-agent").textContent = `Agent: ${agentName}`;
+      document.getElementById("header-limit-pill").textContent = activePro
+        ? "Unlimited Pro"
+        : `Sisa Limit: ${currentUser.limitRemaining ?? 0}`;
+
+      // Pro Option Box (Analyze with AI)
+      const proOptionBox = document.getElementById("pro-ai-option-box");
+      if (activePro) {
+        proOptionBox.classList.remove("hidden");
+      } else {
+        proOptionBox.classList.add("hidden");
+        document.getElementById("chk-analyze-ai").checked = false;
+      }
+
+      // Search Status Bar
+      const statusInfo = document.getElementById("search-status-info");
+      if (activePro) {
+        statusInfo.innerHTML = `<i data-lucide="sparkles" class="w-4 h-4 text-amber-500 shrink-0"></i><span><strong>Mode Langganan Aktif:</strong> Cari file dengan cepat melalui <em>Analyze with AI</em>, atau tanyakan langsung tanpa file.</span>`;
+        document.getElementById("upload-hint").textContent = "Opsional untuk pengguna langganan: Unggah file atau langsung cari dengan Model AI";
+      } else {
+        statusInfo.innerHTML = `<i data-lucide="shield-check" class="w-4 h-4 text-emerald-500 shrink-0"></i><span><strong>Akun Free:</strong> Sisa limit ${currentUser.limitRemaining ?? 0}x generate. Unggah file untuk memulai.</span>`;
+        document.getElementById("upload-hint").textContent = "Mendukung XLSX, XLS, CSV, DOCX, PDF, TXT, JSON, XML, dan format teks lainnya";
+      }
+
+      // Profile Card
+      document.getElementById("profile-avatar-initial").textContent = (currentUser.name || "U").charAt(0).toUpperCase();
+      document.getElementById("profile-name").textContent = currentUser.name;
+      document.getElementById("profile-id").textContent = `ID Pengguna: ${currentUser.phone}`;
+      document.getElementById("profile-meta").textContent = `${currentUser.profession || "-"} • ${currentUser.purpose || "-"}`;
+
+      const pBadge = document.getElementById("profile-badge");
+      if (activePro) {
+        pBadge.className = "inline-flex items-center gap-1 text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300";
+        pBadge.innerHTML = `<i data-lucide="crown" class="w-3 h-3"></i><span>LANGGANAN (${currentUser.planName || 'PRO'})</span>`;
+      } else {
+        pBadge.className = "inline-flex items-center gap-1 text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300";
+        pBadge.innerHTML = `<i data-lucide="user" class="w-3 h-3"></i><span>FREE TIER</span>`;
+      }
+
+      lucide.createIcons();
+    }
+
+    window.handleLogout = () => {
+      showModal({
+        title: "Keluar dari Akun",
+        html: "Apakah Anda yakin ingin keluar dari sesi aplikasi ASW saat ini?",
+        icon: "log-out",
+        cancelText: "Batal",
+        confirmText: "Ya, Keluar",
+        onConfirm: async () => {
+          if (currentPhoneId) {
+            await update(ref(db, `users/${currentPhoneId}`), { online: false, lastSeen: serverTimestamp() });
+          }
+          localStorage.removeItem("asw_user_phone");
+          location.reload();
+        }
+      });
+    };
+
+    // Main View Switching
+    window.switchMainView = (view) => {
+      ["history", "search", "profile"].forEach((v) => {
+        document.getElementById(`view-${v}`).classList.add("hidden");
+        const navBtn = document.getElementById(`nav-${v}`);
+        navBtn.className = "flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-brand-600 transition relative";
+      });
+
+      document.getElementById(`view-${view}`).classList.remove("hidden");
+      const activeBtn = document.getElementById(`nav-${view}`);
+      activeBtn.className = "flex flex-col items-center justify-center gap-1 text-brand-600 dark:text-brand-400 font-bold transition relative";
+      lucide.createIcons();
+    };
+
+    // Search Direction Toggle (Horizontal / Vertical)
+    window.setSearchDirection = (dir) => {
+      searchDirection = dir;
+      const btnH = document.getElementById("dir-horizontal");
+      const btnV = document.getElementById("dir-vertical");
+      const guide = document.getElementById("direction-guide");
+
+      if (dir === "horizontal") {
+        btnH.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white dark:bg-slate-900 text-brand-600 dark:text-brand-400 shadow-sm transition";
+        btnV.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-500 dark:text-slate-400 transition";
+        guide.innerHTML = `<i data-lucide="table-2" class="w-4 h-4 text-brand-500 shrink-0"></i><span><strong>Mode Horizontal:</strong> Menampilkan 2 baris: Baris 1 (Header paling atas) & Baris 2 (seluruh teks sebaris sejajar dari paling kiri hingga paling kanan akhir).</span>`;
+      } else {
+        btnV.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white dark:bg-slate-900 text-brand-600 dark:text-brand-400 shadow-sm transition";
+        btnH.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-500 dark:text-slate-400 transition";
+        guide.innerHTML = `<i data-lucide="columns-3" class="w-4 h-4 text-brand-500 shrink-0"></i><span><strong>Mode Vertikal:</strong> Menampilkan kolom sejajar secara vertikal dari baris paling atas hingga baris paling bawah.</span>`;
+      }
+      lucide.createIcons();
+    };
+
+    // Multi-Format File Parser
+    window.handleFilesSelected = async (event) => {
+      const files = Array.from(event.target.files);
+      if (!files.length) return;
+
+      showToast(`Memproses ${files.length} file...`, "info");
+
+      for (const file of files) {
+        try {
+          const parsed = await parseAnyFile(file);
+          parsedFilesData = parsedFilesData.filter((f) => f.fileName !== file.name);
+          parsedFilesData.push(parsed);
+        } catch (err) {
+          showToast(`Gagal membaca ${file.name}: ${err.message}`, "error");
+        }
+      }
+
+      renderUploadedFilesPills();
+      event.target.value = "";
+    };
+
+    async function parseAnyFile(file) {
+      const ext = file.name.split(".").pop().toLowerCase();
+
+      // Excel / CSV
+      if (["xlsx", "xls", "csv", "ods"].includes(ext)) {
+        const buffer = await file.arrayBuffer();
+        const workbook = XLSX.read(buffer, { type: "array" });
+        const sheets = workbook.SheetNames.map((sheetName) => {
+          const worksheet = workbook.Sheets[sheetName];
+          const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
+          return { sheetName, rows };
+        });
+        return { fileName: file.name, sheets };
+      }
+
+      // Word DOCX
+      if (ext === "docx" && window.mammoth) {
+        const buffer = await file.arrayBuffer();
+        const result = await mammoth.extractRawText({ arrayBuffer: buffer });
+        const lines = result.value.split(/\r?\n/).filter((l) => l.trim() !== "");
+        const rows = lines.map((line) => line.split(/\t|\s{2,}/).map((c) => c.trim()));
+        return { fileName: file.name, sheets: [{ sheetName: "Dokumen Word", rows }] };
+      }
+
+      // PDF
+      if (ext === "pdf" && window.pdfjsLib) {
+        const buffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
+        const sheets = [];
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          const lineMap = {};
+          content.items.forEach((item) => {
+            const y = Math.round(item.transform[5]);
+            if (!lineMap[y]) lineMap[y] = [];
+            lineMap[y].push(item.str);
+          });
+          const sortedYs = Object.keys(lineMap).sort((a, b) => b - a);
+          const rows = sortedYs.map((y) => lineMap[y]);
+          sheets.push({ sheetName: `Halaman ${i}`, rows });
+        }
+        return { fileName: file.name, sheets };
+      }
+
+      // Fallback for TXT, JSON, XML, LOG, MD, HTML, etc.
+      const text = await file.text();
+      const lines = text.split(/\r?\n/).filter((l) => l.trim() !== "");
+      const rows = lines.map((line) => {
+        if (line.includes("\t")) return line.split("\t");
+        if (line.includes(";")) return line.split(";");
+        if (line.includes(",")) return line.split(",");
+        return [line];
+      });
+      return { fileName: file.name, sheets: [{ sheetName: "Teks Utama", rows }] };
+    }
+
+    function renderUploadedFilesPills() {
+      const container = document.getElementById("uploaded-files-list");
+      if (parsedFilesData.length === 0) {
+        container.classList.add("hidden");
+        container.innerHTML = "";
+        return;
+      }
+      container.classList.remove("hidden");
+      container.innerHTML = parsedFilesData
+        .map(
+          (f, idx) => `
+          <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-brand-50 dark:bg-brand-900/30 border border-brand-200 dark:border-brand-800 text-xs font-medium text-brand-700 dark:text-brand-300">
+            <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i>
+            <span class="max-w-[160px] truncate">${escapeHtml(f.fileName)}</span>
+            <button type="button" onclick="removeUploadedFile(${idx})" class="hover:text-rose-500">
+              <i data-lucide="x" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>`
+        )
+        .join("");
+      lucide.createIcons();
+    }
+
+    window.removeUploadedFile = (idx) => {
+      parsedFilesData.splice(idx, 1);
+      renderUploadedFilesPills();
+    };
+
+    // Voice Search Recognition
+    window.startVoiceInput = () => {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        showToast("Browser Anda tidak mendukung pencarian suara.", "warning");
+        return;
+      }
+      const recognition = new SpeechRecognition();
+      recognition.lang = "id-ID";
+      recognition.interimResults = false;
+
+      const btn = document.getElementById("btn-voice");
+      btn.classList.add("text-rose-600", "animate-pulse");
+      showToast("Silakan ucapkan kata kunci pencarian...", "info");
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        document.getElementById("search-query").value = transcript;
+        showToast("Suara dikenali: " + transcript, "success");
+      };
+      recognition.onerror = () => {
+        showToast("Gagal menangkap suara. Coba lagi.", "error");
+      };
+      recognition.onend = () => {
+        btn.classList.remove("text-rose-600", "animate-pulse");
+      };
+      recognition.start();
+    };
+
+    // Execute Search
+    window.executeSearch = async () => {
+      if (isSearching) return;
+      const query = document.getElementById("search-query").value.trim();
+      if (!query) {
+        showToast("Masukkan kata kunci pencarian terlebih dahulu.", "warning");
+        return;
+      }
+
+      const activePro = isUserSubscriptionActive(currentUser);
+      const analyzeWithAI = activePro && document.getElementById("chk-analyze-ai").checked;
+
+      // Validation for Free vs Pro
+      if (!activePro) {
+        const rem = Number(currentUser.limitRemaining ?? 0);
+        if (rem <= 0) {
+          showModal({
+            title: "Limit Pencarian Free Habis",
+            html: "Kuota pencarian gratis Anda telah habis. Silakan upgrade ke paket <strong>Langganan ASW</strong> untuk pencarian tanpa batas dan akses AI cerdas.",
+            icon: "lock",
+            cancelText: "Nanti",
+            confirmText: "Lihat Paket Langganan",
+            onConfirm: () => {
+              switchMainView("profile");
+              openProfileSection("subscription");
+            }
+          });
+          return;
+        }
+        if (parsedFilesData.length === 0) {
+          showToast("Pengguna Free wajib mengunggah minimal 1 file terlebih dahulu.", "warning");
+          return;
+        }
+      } else if (parsedFilesData.length === 0 && (!currentUser.assignedAIs || currentUser.assignedAIs.length === 0)) {
+        showToast("Unggah file atau hubungi admin untuk aktivasi model AI pada akun Anda.", "warning");
+        return;
+      }
+
+      isSearching = true;
+      searchAbortController = new AbortController();
+
+      // UI State: Searching with Countdown
+      const btnExec = document.getElementById("btn-execute-search");
+      const btnCancel = document.getElementById("btn-cancel-search");
+      const progressCard = document.getElementById("search-progress-card");
+      const resultsContainer = document.getElementById("search-results-container");
+
+      btnExec.classList.add("hidden");
+      btnCancel.classList.remove("hidden");
+      btnCancel.classList.add("inline-flex");
+      progressCard.classList.remove("hidden");
+      resultsContainer.innerHTML = "";
+
+      const useAiWithoutFile = activePro && parsedFilesData.length === 0;
+      let estSeconds = useAiWithoutFile ? 8 : analyzeWithAI ? 7 : Math.max(2, parsedFilesData.length * 2);
+      document.getElementById("countdown-seconds").textContent = estSeconds;
+      document.getElementById("search-progress-title").textContent = useAiWithoutFile
+        ? "Menghubungkan ke Smart AI Router..."
+        : analyzeWithAI
+        ? `Memindai ${parsedFilesData.length} File & Analisis AI...`
+        : `Memindai ${parsedFilesData.length} File (${searchDirection.toUpperCase()})...`;
+
+      countdownInterval = setInterval(() => {
+        if (estSeconds > 1) {
+          estSeconds--;
+          document.getElementById("countdown-seconds").textContent = estSeconds;
+        }
+      }, 1000);
+
+      try {
+        if (useAiWithoutFile) {
+          // Subscriber AI Search without uploading file using Admin-configured Smart AI Router
+          const aiResponse = await queryWithSmartAIRouter(query, searchDirection, null, searchAbortController.signal);
+          if (!isSearching) return;
+
+          const renderedHtml = buildAIResultHtml(query, aiResponse, "Pencarian Langsung Smart AI Router");
+          resultsContainer.innerHTML = renderedHtml;
+          lucide.createIcons();
+
+          await saveSearchHistory(
+            query,
+            "AI Direct",
+            ["Smart AI Router"],
+            1,
+            aiResponse.text.slice(0, 180),
+            renderedHtml
+          );
+        } else {
+          // JavaScript File Search (Both Free & Pro)
+          await new Promise((r) => setTimeout(r, 500));
+          if (!isSearching) return;
+
+          const fileMatches = performJavaScriptFileSearch(query, searchDirection, parsedFilesData);
+          const totalCount = fileMatches.reduce((acc, f) => acc + f.matches.length, 0);
+
+          let finalHtml = buildFileSearchResultsHtml(query, searchDirection, fileMatches, totalCount);
+
+          // Optional: Pro Subscriber "Analyze with AI" on extracted JavaScript file matches
+          if (analyzeWithAI && totalCount > 0) {
+            const contextSnippet = buildContextSnippetForAI(fileMatches);
+            try {
+              const aiAnalysis = await queryWithSmartAIRouter(query, searchDirection, contextSnippet, searchAbortController.signal);
+              finalHtml = buildAIResultHtml(query, aiAnalysis, "Analisis AI pada Hasil File") + finalHtml;
+            } catch (aiErr) {
+              showToast("Analisis AI dilewati: " + aiErr.message, "warning");
+            }
+          }
+
+          resultsContainer.innerHTML = finalHtml;
+          lucide.createIcons();
+
+          // Deduct limit if Free user
+          if (!activePro) {
+            const newLimit = Math.max(0, Number(currentUser.limitRemaining ?? 0) - 1);
+            await update(ref(db, `users/${currentPhoneId}`), { limitRemaining: newLimit });
+          }
+
+          const fileNames = parsedFilesData.map((f) => f.fileName);
+          await saveSearchHistory(
+            query,
+            searchDirection,
+            fileNames,
+            totalCount,
+            `Ditemukan ${totalCount} temuan pada ${fileNames.length} file.`,
+            finalHtml
+          );
+        }
+      } catch (err) {
+        if (err.name === "AbortError" || !isSearching) {
+          showToast("Pencarian dibatalkan.", "warning");
+        } else {
+          showToast("Terjadi kendala saat pencarian: " + err.message, "error");
+        }
+      } finally {
+        stopSearchUI();
+      }
+    };
+
+    window.cancelSearch = () => {
+      isSearching = false;
+      if (searchAbortController) searchAbortController.abort();
+      stopSearchUI();
+      showToast("Proses pencarian dibatalkan oleh pengguna.", "warning");
+    };
+
+    function stopSearchUI() {
+      isSearching = false;
+      clearInterval(countdownInterval);
+      document.getElementById("btn-execute-search").classList.remove("hidden");
+      document.getElementById("btn-cancel-search").classList.add("hidden");
+      document.getElementById("btn-cancel-search").classList.remove("inline-flex");
+      document.getElementById("search-progress-card").classList.add("hidden");
+    }
+
+    window.resetNewSearch = () => {
+      parsedFilesData = [];
+      renderUploadedFilesPills();
+      document.getElementById("search-query").value = "";
+      document.getElementById("search-results-container").innerHTML = "";
+      document.getElementById("search-query").focus();
+      showToast("Siap untuk pencarian baru.", "info");
+    };
+
+    /**
+     * Exact JavaScript Extraction Logic:
+     * - Horizontal: Baris 1 = Top Header Row, Baris 2 = Full aligned row from leftmost to rightmost cell where keyword matches.
+     * - Vertical: Full aligned column from top row to bottom row where keyword matches.
+     */
+    function performJavaScriptFileSearch(keyword, direction, files) {
+      const q = keyword.toLowerCase();
+      const resultsByFile = [];
+
+      for (const file of files) {
+        const matches = [];
+        for (const sheet of file.sheets) {
+          const rows = sheet.rows || [];
+          if (rows.length === 0) continue;
+
+          const headerRow = rows[0] || [];
+          const maxCols = rows.reduce((max, r) => Math.max(max, (r || []).length), 0);
+
+          if (direction === "horizontal") {
+            for (let r = 0; r < rows.length; r++) {
+              const row = rows[r] || [];
+              const matchedColIndices = [];
+              for (let c = 0; c < row.length; c++) {
+                if (String(row[c] ?? "").toLowerCase().includes(q)) {
+                  matchedColIndices.push(c);
+                }
+              }
+
+              if (matchedColIndices.length > 0) {
+                // Normalize full row from leftmost (0) to rightmost (maxCols - 1)
+                const normalizedHeaders = [];
+                const normalizedValues = [];
+                for (let c = 0; c < maxCols; c++) {
+                  normalizedHeaders.push(String(headerRow[c] ?? `Kolom ${c + 1}`));
+                  normalizedValues.push(String(row[c] ?? ""));
+                }
+
+                matches.push({
+                  type: "horizontal",
+                  sheetName: sheet.sheetName,
+                  rowIndex: r + 1,
+                  matchedColIndices,
+                  headers: normalizedHeaders,
+                  values: normalizedValues
+                });
+              }
+            }
+          } else {
+            // Vertical: Find cells matching keyword, extract entire column from top to bottom
+            const matchedColsSet = new Map(); // colIndex -> matchedRowIndices[]
+            for (let r = 0; r < rows.length; r++) {
+              const row = rows[r] || [];
+              for (let c = 0; c < row.length; c++) {
+                if (String(row[c] ?? "").toLowerCase().includes(q)) {
+                  if (!matchedColsSet.has(c)) matchedColsSet.set(c, []);
+                  matchedColsSet.get(c).push(r);
+                }
+              }
+            }
+
+            matchedColsSet.forEach((matchedRowIndices, cIdx) => {
+              const columnCells = [];
+              for (let r = 0; r < rows.length; r++) {
+                columnCells.push({
+                  rowIndex: r + 1,
+                  value: String((rows[r] || [])[cIdx] ?? ""),
+                  isMatch: matchedRowIndices.includes(r)
+                });
+              }
+
+              matches.push({
+                type: "vertical",
+                sheetName: sheet.sheetName,
+                colIndex: cIdx + 1,
+                columnHeader: String(headerRow[cIdx] ?? `Kolom ${cIdx + 1}`),
+                columnCells
+              });
+            });
+          }
+        }
+
+        if (matches.length > 0) {
+          resultsByFile.push({
+            fileName: file.fileName,
+            matches
+          });
+        }
+      }
+
+      return resultsByFile;
+    }
+
+    function buildContextSnippetForAI(fileMatches) {
+      const lines = [];
+      fileMatches.slice(0, 3).forEach((fg) => {
+        lines.push(`File: ${fg.fileName}`);
+        fg.matches.slice(0, 5).forEach((m) => {
+          if (m.type === "horizontal") {
+            const pairs = m.headers.map((h, i) => `${h}: ${m.values[i]}`).join(" | ");
+            lines.push(`- [Sheet ${m.sheetName}, Baris ${m.rowIndex}] ${pairs}`);
+          } else {
+            const vals = m.columnCells.slice(0, 15).map((c) => `B${c.rowIndex}: ${c.value}`).join(" -> ");
+            lines.push(`- [Sheet ${m.sheetName}, Kolom ${m.columnHeader}] ${vals}`);
+          }
+        });
+      });
+      return lines.join("\n");
+    }
+
+    // Build HTML for File Search Results
+    function buildFileSearchResultsHtml(query, direction, fileMatches, totalCount) {
+      if (totalCount === 0) {
+        return `
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-8 text-center">
+            <div class="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center mx-auto mb-3">
+              <i data-lucide="search-x" class="w-6 h-6"></i>
+            </div>
+            <h3 class="text-sm font-bold">Tidak Ada Kecocokan Ditemukan</h3>
+            <p class="text-xs text-slate-500 mt-1">Kata kunci "<strong>${escapeHtml(query)}</strong>" tidak ditemukan pada file yang diunggah.</p>
+          </div>`;
+      }
+
+      let html = `
+        <div class="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-2.5">
+            <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-600 dark:text-emerald-400"></i>
+            <div>
+              <p class="text-sm font-bold text-emerald-900 dark:text-emerald-200">Total ${totalCount} Temuan Ditemukan</p>
+              <p class="text-xs text-emerald-700 dark:text-emerald-400">Dari ${fileMatches.length} file • Mode ${
+        direction === "horizontal"
+          ? "Horizontal (2 Baris: Header Atas & Seluruh Baris Kiri-Kanan)"
+          : "Vertikal (Kolom Sejajar Atas ke Bawah)"
+      }</p>
+            </div>
+          </div>
+        </div>
+      `;
+
+      fileMatches.forEach((fGroup) => {
+        html += `
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+            <div class="px-4 py-3 bg-slate-50 dark:bg-slate-800/70 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <i data-lucide="file-text" class="w-4 h-4 text-brand-600"></i>
+                <span class="text-xs font-extrabold">${escapeHtml(fGroup.fileName)}</span>
+              </div>
+              <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-brand-100 dark:bg-brand-900/40 text-brand-700 dark:text-brand-300">${fGroup.matches.length} Temuan</span>
+            </div>
+            <div class="divide-y divide-slate-100 dark:divide-slate-800">
+        `;
+
+        fGroup.matches.forEach((m) => {
+          if (m.type === "horizontal") {
+            // 2-Row Horizontal Output:
+            // Baris 1 = Top Header Row
+            // Baris 2 = Full aligned row from leftmost to rightmost
+            html += `
+              <div class="p-4 space-y-2.5">
+                <div class="flex items-center justify-between text-[11px] text-slate-500">
+                  <span class="inline-flex items-center gap-1 font-semibold text-brand-600 dark:text-brand-400">
+                    <i data-lucide="table" class="w-3.5 h-3.5"></i>
+                    Sheet: ${escapeHtml(m.sheetName)}
+                  </span>
+                  <span>Baris #${m.rowIndex} (Kiri ke Kanan Lengkap)</span>
+                </div>
+                <div class="overflow-x-auto custom-scrollbar rounded-xl border border-slate-200 dark:border-slate-700">
+                  <table class="w-full text-xs text-left border-collapse">
+                    <thead>
+                      <tr class="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold">
+                        <th class="px-3 py-2 border-r border-slate-200 dark:border-slate-700 whitespace-nowrap bg-slate-200/70 dark:bg-slate-700/70">Baris 1 (Header)</th>
+                        ${m.headers
+                          .map(
+                            (h, cIdx) =>
+                              `<th class="px-3 py-2 border-r border-slate-200 dark:border-slate-700 whitespace-nowrap ${
+                                m.matchedColIndices.includes(cIdx) ? "bg-brand-100 dark:bg-brand-900/50 text-brand-700 dark:text-brand-300" : ""
+                              }">${escapeHtml(h)}</th>`
+                          )
+                          .join("")}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr class="bg-white dark:bg-slate-900">
+                        <td class="px-3 py-2.5 font-semibold text-slate-500 border-r border-slate-200 dark:border-slate-700 whitespace-nowrap bg-slate-50 dark:bg-slate-800/40">Baris 2 (Temuan)</td>
+                        ${m.values
+                          .map(
+                            (val, cIdx) =>
+                              `<td class="px-3 py-2.5 border-r border-slate-200 dark:border-slate-700 whitespace-nowrap ${
+                                m.matchedColIndices.includes(cIdx)
+                                  ? "bg-amber-50 dark:bg-amber-900/30 font-bold text-amber-900 dark:text-amber-200"
+                                  : ""
+                              }">${highlightMatch(val, query)}</td>`
+                          )
+                          .join("")}
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            `;
+          } else {
+            // Vertical Output: Entire aligned column from top to bottom
+            html += `
+              <div class="p-4 space-y-2.5">
+                <div class="flex items-center justify-between text-[11px] text-slate-500">
+                  <span class="inline-flex items-center gap-1 font-semibold text-brand-600 dark:text-brand-400">
+                    <i data-lucide="table" class="w-3.5 h-3.5"></i>
+                    Sheet: ${escapeHtml(m.sheetName)}
+                  </span>
+                  <span>Kolom #${m.colIndex}: <strong>${escapeHtml(m.columnHeader)}</strong> (Atas ke Bawah)</span>
+                </div>
+                <div class="overflow-x-auto custom-scrollbar rounded-xl border border-slate-200 dark:border-slate-700 max-h-64 overflow-y-auto">
+                  <table class="w-full text-xs text-left border-collapse">
+                    <thead class="sticky top-0 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold">
+                      <tr>
+                        <th class="px-3 py-2 border-r border-slate-200 dark:border-slate-700 w-24">Posisi Baris</th>
+                        <th class="px-3 py-2">Isi Kolom Vertikal (${escapeHtml(m.columnHeader)})</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                      ${m.columnCells
+                        .map(
+                          (cell) => `
+                          <tr class="${
+                            cell.rowIndex === 1
+                              ? "bg-slate-50 dark:bg-slate-800/60 font-bold"
+                              : cell.isMatch
+                              ? "bg-amber-50 dark:bg-amber-900/30 font-bold text-amber-900 dark:text-amber-200"
+                              : "bg-white dark:bg-slate-900"
+                          }">
+                            <td class="px-3 py-2 border-r border-slate-200 dark:border-slate-700 text-slate-500">Baris #${cell.rowIndex}${cell.rowIndex === 1 ? " (Header)" : ""}</td>
+                            <td class="px-3 py-2">${highlightMatch(cell.value || "-", query)}</td>
+                          </tr>`
+                        )
+                        .join("")}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            `;
+          }
+        });
+
+        html += `</div></div>`;
+      });
+
+      return html;
+    }
+
+    // Smart AI Router for Pro Users (Auto-Failover across Admin-assigned AI Providers/Keys/Models)
+    async function queryWithSmartAIRouter(promptText, direction, fileContextSnippet, signal) {
+      const assigned = currentUser.assignedAIs || [];
+      if (!assigned.length) {
+        throw new Error("Belum ada konfigurasi AI yang ditautkan admin ke akun Anda.");
+      }
+
+      const systemPrompt = fileContextSnippet
+        ? `Anda adalah ASW (AI Search Word) Analyst. Berikut adalah data hasil ekstraksi file pengguna dengan kata kunci "${promptText}" (mode ${direction.toUpperCase()}):\n${fileContextSnippet}\n\nAnalisis, rangkum hubungan datanya, dan jelaskan temuan penting dalam Bahasa Indonesia yang terstruktur.`
+        : `Anda adalah ASW (AI Search Word) Assistant. Jawab pencarian kata/topik berikut secara terstruktur dan mudah dipahami dalam format pembacaan ${direction.toUpperCase()} dalam Bahasa Indonesia.`;
+
+      let lastError = null;
+      for (const item of assigned) {
+        try {
+          const labelLower = (item.label || "").toLowerCase();
+          const model = item.model || "gpt-4o-mini";
+          const apiKey = item.apiKey;
+          if (!apiKey) continue;
+
+          let replyText = "";
+          if (labelLower.includes("gemini") || model.toLowerCase().includes("gemini")) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+            const res = await fetch(url, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              signal,
+              body: JSON.stringify({
+                contents: [{ parts: [{ text: `${systemPrompt}\n\nKata kunci / Pertanyaan: ${promptText}` }] }]
+              })
+            });
+            if (!res.ok) throw new Error(`Gemini HTTP ${res.status}`);
+            const data = await res.json();
+            replyText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+          } else {
+            let endpoint = "https://api.openai.com/v1/chat/completions";
+            if (labelLower.includes("groq")) endpoint = "https://api.groq.com/openai/v1/chat/completions";
+            else if (labelLower.includes("openrouter")) endpoint = "https://openrouter.ai/api/v1/chat/completions";
+            else if (labelLower.includes("deepseek")) endpoint = "https://api.deepseek.com/chat/completions";
+
+            const res = await fetch(endpoint, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${apiKey}`
+              },
+              signal,
+              body: JSON.stringify({
+                model,
+                messages: [
+                  { role: "system", content: systemPrompt },
+                  { role: "user", content: promptText }
+                ]
+              })
+            });
+            if (!res.ok) throw new Error(`${item.label} HTTP ${res.status}`);
+            const data = await res.json();
+            replyText = data?.choices?.[0]?.message?.content || "";
+          }
+
+          if (!replyText) throw new Error("Respons AI kosong");
+
+          // Record AI Usage Analytics & Bandwidth
+          const bytes = new TextEncoder().encode(promptText + replyText).length;
+          const safeKey = `${item.label}_${model}`.replace(/[.#$/[\]]/g, "_");
+          await runTransaction(ref(db, `analytics/aiUsage/${safeKey}`), (curr) => {
+            if (!curr) {
+              return { label: item.label, model, count: 1, bytesTransferred: bytes };
+            }
+            return {
+              ...curr,
+              count: (curr.count || 0) + 1,
+              bytesTransferred: (curr.bytesTransferred || 0) + bytes
+            };
+          });
+
+          return { text: replyText, label: item.label, model };
+        } catch (err) {
+          if (err.name === "AbortError") throw err;
+          lastError = err;
+        }
+      }
+
+      throw new Error(`Semua rute AI gagal merespons (${lastError?.message || "Unknown error"}).`);
+    }
+
+    function buildAIResultHtml(query, aiResponse, badgeLabel) {
+      return `
+        <div class="bg-white dark:bg-slate-900 border border-brand-200 dark:border-brand-800 rounded-2xl p-5 shadow-sm space-y-3 mb-4">
+          <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+            <div class="flex items-center gap-2">
+              <span class="w-8 h-8 rounded-lg bg-brand-600 text-white flex items-center justify-center">
+                <i data-lucide="sparkles" class="w-4 h-4"></i>
+              </span>
+              <div>
+                <p class="text-xs font-extrabold">${escapeHtml(badgeLabel)}</p>
+                <p class="text-[11px] text-slate-500">Provider: ${escapeHtml(aiResponse.label)} • Model: ${escapeHtml(aiResponse.model)}</p>
+              </div>
+            </div>
+            <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300">AI Smart Router</span>
+          </div>
+          <div class="text-xs sm:text-sm leading-relaxed whitespace-pre-line text-slate-700 dark:text-slate-200">${escapeHtml(aiResponse.text)}</div>
+        </div>
+      `;
+    }
+
+    // Save Search History to RTDB (including HTML preview snapshot)
+    async function saveSearchHistory(query, mode, files, resultsCount, resultsSummary, previewHtml = "") {
+      if (!currentPhoneId) return;
+      const histRef = push(ref(db, `histories/${currentPhoneId}`));
+      await set(histRef, {
+        query,
+        mode,
+        files,
+        resultsCount,
+        resultsSummary,
+        previewHtml: previewHtml.slice(0, 60000),
+        pinned: false,
+        archived: false,
+        timestamp: Date.now()
+      });
+    }
+
+    // History Filter, Search, Bulk Select & Preview
+    window.setHistoryFilter = (filter) => {
+      historyFilter = filter;
+      ["all", "pinned", "archived"].forEach((f) => {
+        const el = document.getElementById(`hfilter-${f}`);
+        el.className =
+          f === filter
+            ? "px-3 py-1.5 rounded-lg text-xs font-semibold bg-white dark:bg-slate-800 shadow-sm text-brand-600 dark:text-brand-400"
+            : "px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-500";
+      });
+      renderHistories();
+    };
+
+    window.toggleHistorySelectMode = () => {
+      historySelectMode = !historySelectMode;
+      selectedHistoryIds.clear();
+      updateBulkDeleteButton();
+      renderHistories();
+    };
+
+    window.toggleSelectHistoryItem = (id, event) => {
+      event.stopPropagation();
+      if (selectedHistoryIds.has(id)) selectedHistoryIds.delete(id);
+      else selectedHistoryIds.add(id);
+      updateBulkDeleteButton();
+      renderHistories();
+    };
+
+    function updateBulkDeleteButton() {
+      const btnDel = document.getElementById("btn-delete-selected-histories");
+      const countSpan = document.getElementById("selected-history-count");
+      countSpan.textContent = selectedHistoryIds.size;
+      if (historySelectMode && selectedHistoryIds.size > 0) {
+        btnDel.classList.remove("hidden");
+        btnDel.classList.add("inline-flex");
+      } else {
+        btnDel.classList.add("hidden");
+        btnDel.classList.remove("inline-flex");
+      }
+    }
+
+    window.deleteSelectedHistories = () => {
+      if (selectedHistoryIds.size === 0) return;
+      showModal({
+        title: `Hapus ${selectedHistoryIds.size} Riwayat Terpilih`,
+        html: `Anda yakin ingin menghapus <strong>${selectedHistoryIds.size}</strong> riwayat pencarian yang telah ditandai?`,
+        icon: "trash-2",
+        cancelText: "Batal",
+        confirmText: "Hapus Sekarang",
+        onConfirm: async () => {
+          const updates = {};
+          selectedHistoryIds.forEach((id) => {
+            updates[`histories/${currentPhoneId}/${id}`] = null;
+          });
+          await update(ref(db), updates);
+          selectedHistoryIds.clear();
+          historySelectMode = false;
+          updateBulkDeleteButton();
+          showToast("Riwayat terpilih berhasil dihapus.", "success");
+        }
+      });
+    };
+
+    window.previewHistoryItem = (id) => {
+      const item = userHistories.find((h) => h.id === id);
+      if (!item) return;
+
+      const contentHtml = item.previewHtml
+        ? `<div class="space-y-3">${item.previewHtml}</div>`
+        : `<div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800 text-xs">
+            <p class="font-bold mb-1">Ringkasan Hasil:</p>
+            <p>${escapeHtml(item.resultsSummary || "Tidak ada pratinjau tersimpan.")}</p>
+           </div>`;
+
+      showModal({
+        title: `Pratinjau Riwayat: "${item.query}"`,
+        html: `
+          <div class="mb-3 pb-2 border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
+            <span>File: <strong>${escapeHtml((item.files || []).join(", ") || "-")}</strong></span>
+            <span>${formatDate(item.timestamp)}</span>
+          </div>
+          ${contentHtml}
+        `,
+        icon: "eye",
+        confirmText: "Tutup Pratinjau"
+      });
+    };
+
+    function renderHistories() {
+      const container = document.getElementById("history-list");
+      const searchKw = (document.getElementById("history-search-input")?.value || "").toLowerCase().trim();
+      let filtered = userHistories;
+
+      if (historyFilter === "pinned") filtered = userHistories.filter((h) => h.pinned && !h.archived);
+      else if (historyFilter === "archived") filtered = userHistories.filter((h) => h.archived);
+      else filtered = userHistories.filter((h) => !h.archived);
+
+      if (searchKw) {
+        filtered = filtered.filter(
+          (h) =>
+            (h.query || "").toLowerCase().includes(searchKw) ||
+            (h.files || []).some((f) => f.toLowerCase().includes(searchKw))
+        );
+      }
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-8 text-center">
+            <i data-lucide="folder-open" class="w-8 h-8 text-slate-400 mx-auto mb-2"></i>
+            <p class="text-sm font-bold">Tidak Ada Riwayat Ditemukan</p>
+            <p class="text-xs text-slate-500 mt-1">Riwayat pencarian kata dan file Anda akan tampil di sini.</p>
+          </div>`;
+        lucide.createIcons();
+        return;
+      }
+
+      container.innerHTML = filtered
+        .map((h) => {
+          const isChecked = selectedHistoryIds.has(h.id);
+          return `
+          <div onclick="previewHistoryItem('${h.id}')" class="cursor-pointer bg-white dark:bg-slate-900 border ${
+            isChecked
+              ? "border-rose-500 ring-1 ring-rose-500"
+              : h.pinned
+              ? "border-brand-400 dark:border-brand-600"
+              : "border-slate-200 dark:border-slate-800 hover:border-brand-400"
+          } rounded-2xl p-4 shadow-sm space-y-2.5 transition">
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-start gap-2.5">
+                ${
+                  historySelectMode
+                    ? `<input type="checkbox" ${isChecked ? "checked" : ""} onclick="toggleSelectHistoryItem('${h.id}', event)" class="mt-1 w-4 h-4 rounded text-rose-600" />`
+                    : ""
+                }
+                <div>
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    ${h.pinned ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-brand-100 dark:bg-brand-900/40 text-brand-700 dark:text-brand-300">Disematkan</span>` : ""}
+                    <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">${escapeHtml(h.mode || "Horizontal")}</span>
+                    <span class="text-[10px] font-semibold text-brand-600 dark:text-brand-400 inline-flex items-center gap-1"><i data-lucide="eye" class="w-3 h-3"></i> Klik untuk pratinjau</span>
+                  </div>
+                  <h4 class="text-sm font-bold mt-1.5">Kata Kunci: "${escapeHtml(h.query)}"</h4>
+                  <p class="text-xs text-slate-500 mt-0.5">File: ${(h.files || []).map((f) => escapeHtml(f)).join(", ") || "-"}</p>
+                </div>
+              </div>
+              <span class="text-[11px] text-slate-400 shrink-0">${formatDate(h.timestamp)}</span>
+            </div>
+            <p class="text-xs text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl">${escapeHtml(h.resultsSummary || "")}</p>
+            <div class="flex items-center justify-end gap-1.5 pt-1" onclick="event.stopPropagation()">
+              <button onclick="toggleHistoryFlag('${h.id}', 'pinned', ${!h.pinned})" class="px-2.5 py-1.5 rounded-lg text-xs font-medium border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-1">
+                <i data-lucide="pin" class="w-3.5 h-3.5 ${h.pinned ? 'text-brand-600' : ''}"></i>
+                <span>${h.pinned ? "Lepas Sematan" : "Sematkan"}</span>
+              </button>
+              <button onclick="toggleHistoryFlag('${h.id}', 'archived', ${!h.archived})" class="px-2.5 py-1.5 rounded-lg text-xs font-medium border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-1">
+                <i data-lucide="archive" class="w-3.5 h-3.5"></i>
+                <span>${h.archived ? "Pulihkan" : "Arsipkan"}</span>
+              </button>
+              <button onclick="deleteHistoryItem('${h.id}')" class="px-2.5 py-1.5 rounded-lg text-xs font-medium border border-rose-200 dark:border-rose-900/50 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center gap-1">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                <span>Hapus</span>
+              </button>
+            </div>
+          </div>`;
+        })
+        .join("");
+      lucide.createIcons();
+    }
+
+    window.toggleHistoryFlag = async (id, field, val) => {
+      await update(ref(db, `histories/${currentPhoneId}/${id}`), { [field]: val });
+      showToast("Status riwayat diperbarui.", "success");
+    };
+
+    window.deleteHistoryItem = (id) => {
+      showModal({
+        title: "Hapus Riwayat",
+        html: "Riwayat pencarian ini akan dihapus permanen. Lanjutkan?",
+        icon: "trash-2",
+        cancelText: "Batal",
+        confirmText: "Hapus",
+        onConfirm: async () => {
+          await remove(ref(db, `histories/${currentPhoneId}/${id}`));
+          showToast("Riwayat dihapus.", "info");
+        }
+      });
+    };
+
+    // Profile Sub-Sections
+    window.openProfileSection = async (section) => {
+      const panel = document.getElementById("profile-sub-panel");
+      panel.classList.remove("hidden");
+
+      if (section === "messages") {
+        for (const m of userMessages) {
+          if (!m.read) {
+            update(ref(db, `messages/${currentPhoneId}/${m.id}`), { read: true });
+          }
+        }
+        panel.innerHTML = `
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-base font-bold flex items-center gap-2"><i data-lucide="mail" class="w-4 h-4 text-sky-600"></i> Pesan dari Admin</h3>
+            <button onclick="document.getElementById('profile-sub-panel').classList.add('hidden')" class="text-xs text-slate-400 hover:text-slate-600">Tutup</button>
+          </div>
+          ${
+            userMessages.length === 0
+              ? `<p class="text-xs text-slate-500 text-center py-6">Belum ada pesan masuk dari admin.</p>`
+              : `<div class="space-y-3">${userMessages
+                  .map(
+                    (m) => `
+                  <div class="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 space-y-1.5">
+                    <div class="flex items-center justify-between">
+                      <span class="text-xs font-bold text-slate-900 dark:text-white">${escapeHtml(m.title)}</span>
+                      <span class="text-[10px] text-slate-400">${formatDate(m.timestamp)}</span>
+                    </div>
+                    <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">${escapeHtml(m.body)}</p>
+                    ${
+                      m.paymentLink
+                        ? `<a href="${escapeHtml(m.paymentLink)}" target="_blank" class="inline-flex items-center gap-1.5 mt-2 px-3 py-1.5 rounded-lg bg-brand-600 text-white text-xs font-semibold hover:bg-brand-700"><i data-lucide="external-link" class="w-3.5 h-3.5"></i> Buka Link Pembayaran</a>`
+                        : ""
+                    }
+                  </div>`
+                  )
+                  .join("")}</div>`
+          }
+        `;
+      } else if (section === "intelligence") {
+        const activePro = isUserSubscriptionActive(currentUser);
+        const agentName = activePro
+          ? (currentUser.agentName || "ASW Pro AI Router")
+          : (currentUser.agentName || freeSettings.agentName || "ASW Standard Engine");
+        const expText = activePro
+          ? (currentUser.expiresAt ? formatDate(currentUser.expiresAt) : "Unlimited / Selamanya")
+          : "Tidak Ada (Akun Free)";
+
+        panel.innerHTML = `
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-base font-bold flex items-center gap-2"><i data-lucide="brain-circuit" class="w-4 h-4 text-purple-600"></i> Informasi Kecerdasan</h3>
+            <button onclick="document.getElementById('profile-sub-panel').classList.add('hidden')" class="text-xs text-slate-400 hover:text-slate-600">Tutup</button>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+              <span class="text-slate-400 block mb-0.5">Nama Paket Langganan / Free</span>
+              <span class="font-extrabold text-sm">${activePro ? escapeHtml(currentUser.planName || "Langganan Pro") : "Paket Free"}</span>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+              <span class="text-slate-400 block mb-0.5">Jenis / Nama Agent</span>
+              <span class="font-extrabold text-sm text-brand-600 dark:text-brand-400">${escapeHtml(agentName)}</span>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+              <span class="text-slate-400 block mb-0.5">Total Sisa Limit Penggunaan</span>
+              <span class="font-extrabold text-sm">${activePro ? "Unlimited (Tak Terbatas)" : `${currentUser.limitRemaining ?? 0}x Generate`}</span>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+              <span class="text-slate-400 block mb-0.5">Masa Berlaku (Expired)</span>
+              <span class="font-extrabold text-sm">${expText}</span>
+            </div>
+          </div>
+        `;
+      } else if (section === "subscription") {
+        const plans = [
+          { name: "Tester Unlimited", duration: "1 Hari", days: 1, price: "Rp. 4.900", strike: null, desc: "Akses cepat unlimited 1 hari penuh untuk pengujian" },
+          { name: "Personal Unlimited", duration: "4 Hari", days: 4, price: "Rp. 17.900", strike: null, desc: "Ideal untuk olah data cepat kebutuhan personal" },
+          { name: "Work Unlimited", duration: "1 Minggu", days: 7, price: "Rp. 25.900", strike:  "Rp. 28.000", desc: "Produktivitas kerja mingguan tanpa batas" },
+          { name: "Busnis Unlimited", duration: "1 Bulan", days: 30, price: "Rp. 49.900", strike:  "Rp.91.000", desc: "Solusi bisnis bulanan dengan Smart AI Router" },
+          { name: "Project Unlimited", duration: "6 Bulan", days: 180, price: "Rp. 225.000", strike: null, desc: "Hemat untuk riset & proyek jangka menengah" },
+          { name: "Big Unlimited", duration: "1 Tahun", days: 365, price: "Rp. 365.000", strike: null, desc: "Performa maksimal sepanjang tahun" },
+          { name: "Mega Unlimited", duration: "3 Tahun + Free 3 Tahun", days: 2190, price: "Rp. 499.900", strike: "Rp.980.000", desc: "Total 6 tahun akses prioritas tanpa batas", featured: true }
+        ];
+
+        panel.innerHTML = `
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-base font-bold flex items-center gap-2"><i data-lucide="crown" class="w-4 h-4 text-amber-500"></i> Paket Langganan ASW</h3>
+            <button onclick="document.getElementById('profile-sub-panel').classList.add('hidden')" class="text-xs text-slate-400 hover:text-slate-600">Tutup</button>
+          </div>
+          <p class="text-xs text-slate-500 mb-4">Upgrade paket langganan untuk penggunaan cepat tak terbatas, fitur rangkum Analyze with AI, dan pencarian langsung via Model AI tanpa unggah file.</p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            ${plans
+              .map(
+                (p) => `
+              <div class="p-4 rounded-2xl border ${
+                p.featured
+                  ? "sm:col-span-2 border-amber-400 bg-gradient-to-br from-amber-50/90 to-white dark:from-amber-950/35 dark:to-slate-900 shadow-md"
+                  : "border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40"
+              } flex flex-col justify-between gap-3">
+                <div>
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="text-sm font-extrabold">${p.name}</span>
+                    <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-brand-100 dark:bg-brand-900/40 text-brand-700 dark:text-brand-300">${p.duration}</span>
+                  </div>
+                  <div class="mt-2 flex items-baseline gap-2">
+                    <span class="text-lg font-extrabold text-brand-600 dark:text-brand-400">${p.price}</span>
+                    ${p.strike ? `<span class="text-xs line-through text-slate-400">${p.strike}</span>` : ""}
+                  </div>
+                  <p class="text-[11px] text-slate-500 mt-1">${p.desc}</p>
+                </div>
+                <button onclick="orderSubscription('${p.name} (${p.duration})', '${p.price}', ${p.days})" class="w-full py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold transition">
+                  Beli / Order Paket Ini
+                </button>
+              </div>`
+              )
+              .join("")}
+          </div>
+          <p class="text-[11px] text-slate-400 mt-3">*S&K berlaku. Setelah order, admin akan mengirimkan link pembayaran dan mengaktifkan model AI pada akun Anda.</p>
+        `;
+      } else if (section === "feedback") {
+        panel.innerHTML = `
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-base font-bold flex items-center gap-2"><i data-lucide="message-square-plus" class="w-4 h-4 text-emerald-600"></i> Kirim Feedback ke Admin</h3>
+            <button onclick="document.getElementById('profile-sub-panel').classList.add('hidden')" class="text-xs text-slate-400 hover:text-slate-600">Tutup</button>
+          </div>
+          <form onsubmit="submitFeedback(event)" class="space-y-3">
+            <div>
+              <label class="block text-xs font-semibold mb-1">Jenis Feedback</label>
+              <select id="fb-type" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-semibold">
+                <option value="Kritik">Kritik</option>
+                <option value="Saran">Saran</option>
+                <option value="Pengaduan">Pengaduan</option>
+                <option value="Konfirmasi">Konfirmasi</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold mb-1">Isi Pesan</label>
+              <textarea id="fb-message" rows="3" required placeholder="Tuliskan detail pesan Anda..." class="w-full p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-brand-500"></textarea>
+            </div>
+            <button type="submit" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold">Kirim Pesan</button>
+          </form>
+        `;
+      } else if (section === "terms") {
+        panel.innerHTML = `
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-base font-bold flex items-center gap-2"><i data-lucide="book-open-check" class="w-4 h-4 text-brand-600"></i> Syarat, Ketentuan & Petunjuk</h3>
+            <button onclick="document.getElementById('profile-sub-panel').classList.add('hidden')" class="text-xs text-slate-400 hover:text-slate-600">Tutup</button>
+          </div>
+          <div class="space-y-2.5 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+            <p><strong>1. Cara Ambil Data Horizontal:</strong> Menampilkan hasil dalam 2 baris: Baris 1 mengambil baris paling atas (Header) dan Baris 2 menampilkan seluruh penemuan teks sebaris sejajar dari paling kiri hingga paling kanan akhir baris.</p>
+            <p><strong>2. Cara Ambil Data Vertikal:</strong> Menampilkan seluruh isi kolom yang sejajar secara vertikal dari atas ke bawah berdasarkan kolom kata kunci ditemukan.</p>
+            <p><strong>3. Pengguna Free vs Langganan:</strong> Pengguna Free menggunakan kuota limit pencarian file lokal. Pengguna Langganan memiliki kuota tanpa batas, opsi centang <em>Analyze with AI</em> pada hasil file, serta dapat mencari langsung menggunakan Model AI tanpa unggah file.</p>
+            <p><strong>4. Keamanan Dokumen:</strong> Pemindaian file dilakukan secara lokal di perangkat Anda sehingga kerahasiaan data tetap terjaga.</p>
+          </div>
+        `;
+      }
+
+      lucide.createIcons();
+      panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    };
+
+    window.orderSubscription = (packageName, price, durationDays) => {
+      showModal({
+        title: `Konfirmasi Order ${packageName}`,
+        html: `Anda akan mengajukan permintaan langganan <strong>${packageName}</strong> seharga <strong>${price}</strong>. Admin akan memproses dan mengirimkan link pembayaran ke menu Pesan Anda.`,
+        icon: "crown",
+        cancelText: "Batal",
+        confirmText: "Ajukan Order",
+        onConfirm: async () => {
+          const reqRef = push(ref(db, "subscriptionRequests"));
+          await set(reqRef, {
+            phone: currentUser.phone,
+            name: currentUser.name,
+            packageName,
+            price,
+            durationDays,
+            status: "pending",
+            timestamp: Date.now()
+          });
+          showToast("Permintaan langganan berhasil dikirim ke admin!", "success");
+        }
+      });
+    };
+
+    window.submitFeedback = async (e) => {
+      e.preventDefault();
+      const type = document.getElementById("fb-type").value;
+      const message = document.getElementById("fb-message").value.trim();
+      if (!message) return;
+
+      const fbRef = push(ref(db, "feedbacks"));
+      await set(fbRef, {
+        phone: currentUser.phone,
+        name: currentUser.name,
+        type,
+        message,
+        status: "baru",
+        timestamp: Date.now()
+      });
+      document.getElementById("fb-message").value = "";
+      showToast("Feedback berhasil dikirim ke admin.", "success");
+    };
+
+    // Helpers
+    function escapeHtml(str) {
+      return String(str ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function highlightMatch(text, query) {
+      const safe = escapeHtml(text);
+      if (!query) return safe;
+      const escapedQ = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      return safe.replace(new RegExp(`(${escapedQ})`, "gi"), `<mark class="bg-amber-300 dark:bg-amber-600 text-slate-900 dark:text-white px-0.5 rounded">$1</mark>`);
+    }
+
+    function formatDate(ts) {
+      if (!ts) return "-";
+      return new Date(ts).toLocaleString("id-ID", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+    }
+  </script>
 </body>
 </html>
